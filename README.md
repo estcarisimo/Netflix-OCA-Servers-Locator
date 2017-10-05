@@ -11,5 +11,5 @@ For more info: https://medium.com/netflix-techblog/building-fast-com-4857fe0f8ad
 ## Requierements:
 To install the python libraries that are required to run the script:
 ```
-sudo pip install subprocess, json, requests, bs4
+sudo pip install subprocess json requests bs4
 ```
