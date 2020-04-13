@@ -17,6 +17,7 @@ Description:
 import subprocess
 import json
 import requests
+import socket
 
 
 def get_host_isp_information():
@@ -78,6 +79,11 @@ def request_for_oca():
     print('> Allocated OCAs for this user\n')
     for oca in oca_list:
             print(oca['url'])
+    print("############################################################################################################\n")
+    print('> IP address of the allocated OCAs\n')
+    for oca in oca_list:
+            fqdn = oca['url'].split('/')[2]
+            print(socket.gethostbyname(fqdn))
 
 
 def main():
