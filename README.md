@@ -1,15 +1,24 @@
 # Finding Netflix's OCA
 ## Description
-Little piece of Python code to find out the currently candidate Netflix's OCA for the end-hosts that runs the script.
-The script is based on fast.com, which is Netflix's speed test, which measures the the throughput between the users and the closest OCA.
-The script is twofold: 
-	1) It gets the token which is necessary to requests for the OCA list 
-	2) It uses the token to download the list of OCA.
+Little piece of Python code to find out candidate Netflix's Open Connect Appliances (OCA) for the end-host running this script.
+We rely on Netflix's speed-test fast.com, which measures throughput between users and their allocated OCAs.
+The script is two-fold: 
+	1) It gets the token necessary to request the list of OCAs.  
+	2) It requests the list of OCAs by inserting the token on the request.
 
 For more info: https://medium.com/netflix-techblog/building-fast-com-4857fe0f8adb
 
 ## Requirements:
 To install the python libraries that are required to run the script:
 ```
-sudo pip install requests
+$ pip install -r requirements.txt
 ```
+
+## To run
+
+**The current version of the script only supports python 2**
+
+```
+python get_ocas.py
+```
+
