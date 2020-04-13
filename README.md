@@ -3,8 +3,8 @@
 Little piece of Python code to find out candidate Netflix's Open Connect Appliances (OCA) for the end-host running this script.
 We rely on Netflix's speed-test fast.com, which measures throughput between users and their allocated OCAs.
 The script is two-fold: 
-	1) It gets the token necessary to request the list of OCAs.  
-	2) It requests the list of OCAs by inserting the token on the request.
+1. It gets the token necessary to request the list of OCAs.  
+2. It requests the list of OCAs by inserting the token on the request.
 
 For more info: https://medium.com/netflix-techblog/building-fast-com-4857fe0f8adb
 
