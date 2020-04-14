@@ -14,6 +14,12 @@ To install the python libraries that are required to run the script:
 $ pip install -r requirements.txt
 ```
 
+In addition, you may need to install ```whois``` in case it is not installed
+
+```
+sudo apt-get install whois
+```
+
 ## To run
 
 **The current version of the script only supports python 2**
