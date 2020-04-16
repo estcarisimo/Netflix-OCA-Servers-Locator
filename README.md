@@ -14,10 +14,11 @@ To install the python libraries that are required to run the script:
 $ pip install -r requirements.txt
 ```
 
-In addition, you may need to install ```whois``` in case it is not installed
+In addition, you may need to install ```whois``` and/or ```curl``` in case they ar not installed yet
 
 ```
-sudo apt-get install whois
+$ sudo apt-get install whois
+$ sudo apt-get install curl
 ```
 
 ## To run
