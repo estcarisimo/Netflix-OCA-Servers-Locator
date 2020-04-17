@@ -2,8 +2,8 @@
 ## Description
 Little piece of Python code to find out candidate Netflix's Open Connect Appliances (OCA) for the end-host running this script.
 We rely on Netflix's speed-test fast.com, which measures throughput between users and their allocated OCAs.
-The script is two-fold: 
-1. It gets the token necessary to request the list of OCAs.  
+The script is two-fold:
+1. It gets the token necessary to request the list of OCAs.
 2. It requests the list of OCAs by inserting the token on the request.
 
 For more info: https://medium.com/netflix-techblog/building-fast-com-4857fe0f8adb
@@ -29,3 +29,24 @@ $ sudo apt-get install curl
 python get_ocas.py
 ```
 
+
+# Nim implementation
+
+- Compiles to single-file native binary without dependencies, similar to C/C++ executables.
+
+#### Requisites
+
+- Nim http://nim-lang.org
+- In addition, you may need to install `whois` (wont need `curl`).
+
+```
+$ sudo apt-get install whois
+```
+
+#### Compile
+
+- `nim compile -d:ssl -d:release get_ocas.nim`
+
+#### Run
+
+- `./get_ocas` (Just run it on terminal window).
