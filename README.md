@@ -23,7 +23,7 @@ $ sudo apt-get install curl
 
 ## To run
 
-**The current version of the script only supports python 2**
+Thanks to @seblaz, scripts now supports python3
 
 ```
 python get_ocas.py
