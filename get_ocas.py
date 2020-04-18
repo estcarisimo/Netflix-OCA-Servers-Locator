@@ -35,15 +35,15 @@ def get_host_isp_information():
     public_ip_request = 'https://api.ipify.org?format=json'
     response = requests.get(public_ip_request)
     ip_addr = json.loads(response.text)
-    cymru_request = 'whois -h whois.cymru.com " -v %s"' % ip_addr['ip']
+    cymru_request = 'whois -h whois.cymru.com " -v {}"'.format(ip_addr['ip'])
     # Run command to extract TOKEN from FAST response
     host_isp_information = subprocess.check_output(
         cymru_request,
         shell=True
     )
-    print("############################################################################################################\n")
-    print('> Host IP information\n')
-    print(host_isp_information)
+    print("############################################################################################################")
+    print('> Host IP information')
+    print(host_isp_information.decode("utf-8"))
 
 
 def request_for_oca():
@@ -61,7 +61,7 @@ def request_for_oca():
     cmd1 = 'curl -s https://fast.com/app-ed402d.js'
     cmd2 = 'egrep -om1 \'token:"[^"]+\''
     # cmd3 = 'cut -f2 -d\'"\''
-    query = 'https://api.fast.com/netflix/speedtest?https=true&token=%s'
+    query = 'https://api.fast.com/netflix/speedtest?https=true&token={}'
 
     # Run command to get TOKEN from FAST.com API
     ps1 = subprocess.Popen(cmd1.split(), stdout=subprocess.PIPE)
@@ -70,17 +70,17 @@ def request_for_oca():
         cmd2,
         shell=True,
         stdin=ps1.stdout
-    ).strip()[7:]
+    ).strip()[7:].decode("utf-8")
     # Use TOKEN to request OCAs and URL to video chunk
-    response = requests.get(query % token)
+    response = requests.get(query.format(token))
     # Turns `response` into dict
     oca_list = json.loads(response.text)
-    print("############################################################################################################\n")
-    print('> Allocated OCAs for this user\n')
+    print("############################################################################################################")
+    print('> Allocated OCAs for this user')
     for oca in oca_list:
             print(oca['url'])
-    print("############################################################################################################\n")
-    print('> IP address of the allocated OCAs\n')
+    print("############################################################################################################")
+    print('> IP address of the allocated OCAs')
     for oca in oca_list:
             fqdn = oca['url'].split('/')[2]
             print(socket.gethostbyname(fqdn))
