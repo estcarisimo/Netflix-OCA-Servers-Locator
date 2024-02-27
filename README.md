@@ -39,7 +39,7 @@ To execute the script and find out the allocated Netflix OCA for your host, simp
 python find_netflix_ocas.py
 ```
 
-Ensure that you're in the directory containing the `get_ocas.py` script when you run this command.
+Ensure that you're in the directory containing the `find_netflix_ocas.py` script when you run this command.
 
 ## Contributions
 
