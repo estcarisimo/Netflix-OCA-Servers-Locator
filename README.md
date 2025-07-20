@@ -62,6 +62,10 @@ pip install -e .
 ### Basic Usage
 
 ```bash
+source .venv/bin/activate
+```
+
+```bash
 # Discover OCAs for your network
 netflix-oca-locator main
 
