@@ -1,0 +1,77 @@
+# Netflix OCA Locator - Docker Compose Configuration
+
+version: '3.8'
+
+services:
+  netflix-oca-locator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    image: netflix-oca-locator:latest
+    container_name: netflix-oca-locator-ephemeral
+    volumes:
+      # Mount output directory to preserve results
+      - ./output:/app/output
+      # Optional: Mount custom configuration
+      - ./.env:/app/.env:ro
+    environment:
+      # Default environment variables
+      - NETFLIX_OCA_LOG_LEVEL=INFO
+      - NETFLIX_OCA_EXPORT_PATH=/app/output
+      # Uncomment to enable debug mode
+      # - NETFLIX_OCA_DEBUG=true
+    networks:
+      - netflix-oca-network
+    # Remove container after execution
+    # This is handled by the entrypoint script
+    restart: "no"
+    # Optional: Set resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+    # Command can be overridden
+    command: ["main", "--help"]
+
+  # Development service for testing
+  netflix-oca-locator-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    image: netflix-oca-locator:dev
+    container_name: netflix-oca-locator-dev
+    volumes:
+      - .:/app
+      - ./output:/app/output
+    environment:
+      - NETFLIX_OCA_DEBUG=true
+      - NETFLIX_OCA_LOG_LEVEL=DEBUG
+    networks:
+      - netflix-oca-network
+    profiles:
+      - dev
+    command: ["sh"]
+    tty: true
+    stdin_open: true
+
+networks:
+  netflix-oca-network:
+    driver: bridge
+
+# Example usage:
+# 
+# Production usage (ephemeral):
+#   docker-compose run --rm netflix-oca-locator main --output json
+#   docker-compose run --rm netflix-oca-locator main --map --debug
+#
+# Development usage:
+#   docker-compose --profile dev run --rm netflix-oca-locator-dev
+#
+# Build only:
+#   docker-compose build
+#
+# Quick test:
+#   docker-compose run --rm netflix-oca-locator version
