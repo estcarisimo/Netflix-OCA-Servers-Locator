@@ -2,14 +2,14 @@
 TheAleph API integration for enhanced geocoding.
 
 This module provides enhanced geocoding capabilities using TheAleph API
-with SSL verification disabled due to certificate issues.
+with full HTTPS security and SSL certificate validation.
 """
 
 from __future__ import annotations
 
 import asyncio
-import urllib3
-import warnings
+import re
+import socket
 from typing import Any
 
 import httpx
@@ -17,17 +17,14 @@ from loguru import logger
 
 from ..config.settings import Settings
 
-# Disable SSL warnings for TheAleph API
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-warnings.filterwarnings("ignore", message="Unverified HTTPS request")
-
 
 class AlephGeocodeService:
     """
     Enhanced geocoding service using TheAleph API.
 
     This service provides superior location resolution for network infrastructure
-    by leveraging TheAleph's PTR record and geographic intelligence.
+    by leveraging TheAleph's PTR record and geographic intelligence with full
+    HTTPS security and IPv6 support.
 
     Parameters
     ----------
@@ -41,7 +38,7 @@ class AlephGeocodeService:
     settings : Settings
         Application settings.
     client : httpx.AsyncClient
-        HTTP client with SSL verification disabled.
+        HTTP client with full SSL verification enabled.
     """
 
     def __init__(
@@ -50,21 +47,125 @@ class AlephGeocodeService:
         """Initialize TheAleph geocoding service."""
         self.settings = settings
         
-        # Create client with SSL verification disabled for TheAleph
+        # Create client with full SSL verification enabled
         if client is None:
             self.client = httpx.AsyncClient(
                 timeout=httpx.Timeout(settings.request_timeout),
-                verify=False,  # Disable SSL verification for expired certificate
+                verify=True,  # Full SSL verification enabled
                 follow_redirects=True,
             )
         else:
             self.client = client
             
-        # Log warning about SSL verification
-        logger.warning(
-            "TheAleph API integration is using disabled SSL verification "
-            "due to expired certificate. This is expected for this service."
-        )
+        logger.info("TheAleph API integration initialized with full HTTPS security")
+
+    def _is_ipv6_domain(self, domain: str) -> bool:
+        """
+        Detect if a domain is IPv6-related based on naming convention.
+        
+        Netflix IPv6 OCA domains typically contain 'ipv6' in the hostname.
+        Example: ipv6-c001-ord001-ix.1.oca.nflxvideo.net
+        
+        Parameters
+        ----------
+        domain : str
+            Domain name to check.
+            
+        Returns
+        -------
+        bool
+            True if domain appears to be IPv6-related, False otherwise.
+        """
+        return "ipv6" in domain.lower()
+    
+    def _detect_ip_type(self, ip_address: str) -> str:
+        """
+        Determine if an IP address is IPv4, IPv6, or unknown.
+        
+        Parameters
+        ----------
+        ip_address : str
+            IP address to analyze.
+            
+        Returns
+        -------
+        str
+            "ipv4" - Contains dots but no colons (e.g., "192.168.1.1")
+            "ipv6" - Contains colons (e.g., "2001:db8::1")
+            "unknown" - Cannot determine type
+        """
+        if not ip_address:
+            return "unknown"
+            
+        if "." in ip_address and ":" not in ip_address:
+            return "ipv4"
+        elif ":" in ip_address:
+            return "ipv6"
+        else:
+            return "unknown"
+    
+    async def _get_ptr_record(self, ip_address: str) -> str | None:
+        """
+        Get PTR record for an IP address.
+        
+        Parameters
+        ----------
+        ip_address : str
+            IP address to lookup PTR record for.
+            
+        Returns
+        -------
+        str | None
+            PTR record if found, None otherwise.
+        """
+        try:
+            logger.debug(f"Looking up PTR record for {ip_address}")
+            
+            # Use asyncio to run the synchronous socket call
+            loop = asyncio.get_event_loop()
+            ptr_record = await loop.run_in_executor(
+                None, socket.gethostbyaddr, ip_address
+            )
+            
+            # gethostbyaddr returns (hostname, aliaslist, ipaddrlist)
+            hostname = ptr_record[0]
+            logger.debug(f"PTR record for {ip_address}: {hostname}")
+            return hostname
+            
+        except socket.herror as e:
+            logger.debug(f"No PTR record found for {ip_address}: {e}")
+            return None
+        except Exception as e:
+            logger.warning(f"Error looking up PTR record for {ip_address}: {e}")
+            return None
+    
+    def _is_valid_ptr_for_thealeph(self, ptr_record: str) -> bool:
+        """
+        Validate if a PTR record is suitable for TheAleph API.
+        
+        Invalid conditions:
+        - Contains ":" (IPv6 indicator)
+        - Is None or empty
+        - Contains invalid characters
+        
+        Parameters
+        ----------
+        ptr_record : str
+            PTR record to validate.
+            
+        Returns
+        -------
+        bool
+            True if PTR record is valid for TheAleph, False otherwise.
+        """
+        if not ptr_record:
+            return False
+        
+        if ":" in ptr_record:
+            return False
+            
+        # Additional validation can be added here
+        return True
 
     async def __aenter__(self) -> AlephGeocodeService:
         """Async context manager entry."""
@@ -78,10 +179,11 @@ class AlephGeocodeService:
         self, domain: str, asn: str | None = None, ip_address: str | None = None
     ) -> dict[str, str | float | None] | None:
         """
-        Resolve domain location using TheAleph API.
+        Resolve domain location using TheAleph API with IPv6 support.
 
         This method queries TheAleph's PTR and geolocation intelligence
-        to provide enhanced location resolution for CDN domains.
+        to provide enhanced location resolution for CDN domains, including
+        intelligent handling of IPv6 domains with NAT64 detection.
 
         Parameters
         ----------
@@ -100,6 +202,88 @@ class AlephGeocodeService:
         try:
             logger.debug(f"Resolving location for domain: {domain} (ASN: {asn}, IP: {ip_address})")
             
+            # Check if this is an IPv6 domain
+            if self._is_ipv6_domain(domain):
+                return await self._handle_ipv6_domain(domain, asn, ip_address)
+            
+            # Standard IPv4 domain handling
+            return await self._handle_standard_domain(domain, asn, ip_address)
+            
+        except Exception as e:
+            logger.debug(f"TheAleph geocoding failed for {domain}: {e}")
+            return None
+
+    async def _handle_ipv6_domain(
+        self, domain: str, asn: str | None, ip_address: str | None
+    ) -> dict[str, str | float | None] | None:
+        """
+        Handle IPv6 domains with NAT64 support.
+        
+        Parameters
+        ----------
+        domain : str
+            IPv6 domain name.
+        asn : str | None
+            Autonomous System Number.
+        ip_address : str | None
+            IP address associated with the domain.
+            
+        Returns
+        -------
+        dict[str, str | float | None] | None
+            Location information or None if resolution fails.
+        """
+        logger.debug(f"Handling IPv6 domain: {domain}")
+        
+        # Check if NAT64 (IPv4 address for IPv6 domain)
+        if ip_address and self._detect_ip_type(ip_address) == "ipv4":
+            logger.debug(f"NAT64 detected for IPv6 domain {domain} -> IPv4 {ip_address}")
+            
+            # Try PTR lookup
+            ptr_record = await self._get_ptr_record(ip_address)
+            
+            if ptr_record and self._is_valid_ptr_for_thealeph(ptr_record):
+                logger.debug(f"Using PTR record {ptr_record} for IPv6 domain {domain}")
+                
+                # Try with original ASN
+                result = await self._handle_standard_domain(ptr_record, asn, ip_address)
+                if result:
+                    result["original_domain"] = domain
+                    result["nat64_detected"] = True
+                    return result
+                
+                # Try with Netflix ASN
+                result = await self._handle_standard_domain(ptr_record, "2906", ip_address)
+                if result:
+                    result["original_domain"] = domain
+                    result["nat64_detected"] = True
+                    return result
+        
+        # Pure IPv6 or failed PTR - use geopy fallback
+        logger.debug(f"Using geopy fallback for IPv6 domain {domain}")
+        return None  # Will trigger fallback in HybridGeocodeService
+
+    async def _handle_standard_domain(
+        self, domain: str, asn: str | None, ip_address: str | None
+    ) -> dict[str, str | float | None] | None:
+        """
+        Handle standard domain resolution using TheAleph API.
+        
+        Parameters
+        ----------
+        domain : str
+            Domain to resolve.
+        asn : str | None
+            Autonomous System Number.
+        ip_address : str | None
+            IP address associated with the domain.
+            
+        Returns
+        -------
+        dict[str, str | float | None] | None
+            Location information or None if resolution fails.
+        """
+        try:
             # TheAleph API payload structure - match working curl command exactly
             payload = {
                 "ptr_record": domain,
@@ -145,7 +329,7 @@ class AlephGeocodeService:
                 logger.warning(f"TheAleph API HTTP error {e.response.status_code} for {domain}")
             return None
         except Exception as e:
-            logger.debug(f"TheAleph geocoding failed for {domain}: {e}")
+            logger.debug(f"TheAleph standard domain handling failed for {domain}: {e}")
             return None
 
     async def resolve_ip_location(
@@ -278,7 +462,6 @@ class AlephGeocodeService:
             if not location_info["iata_code"]:
                 regex_pattern = data.get("regular_expression", "")
                 if regex_pattern:
-                    import re
                     try:
                         match = re.search(regex_pattern, query)
                         if match and len(match.groups()) >= 1:
@@ -315,8 +498,6 @@ class AlephGeocodeService:
         str | None
             IATA code if found, None otherwise.
         """
-        import re
-        
         # Common patterns for IATA codes in hostnames
         patterns = [
             r'\b([a-z]{3})\d*\.',  # lax1., ord2.
@@ -446,8 +627,16 @@ class HybridGeocodeService:
         bool
             True if result is good quality, False otherwise.
         """
-        # Consider result good if it has coordinates or both city and IATA
-        has_coords = result.get("latitude") is not None and result.get("longitude") is not None
+        # Check for valid coordinates (not None, not -1.0 placeholder values)
+        lat = result.get("latitude")
+        lon = result.get("longitude")
+        has_valid_coords = (
+            lat is not None and lon is not None and 
+            lat != -1.0 and lon != -1.0 and
+            isinstance(lat, (int, float)) and isinstance(lon, (int, float))
+        )
+        
+        # Check for city and IATA code
         has_city_and_iata = result.get("city") is not None and result.get("iata_code") is not None
         
-        return has_coords or has_city_and_iata
+        return has_valid_coords or has_city_and_iata

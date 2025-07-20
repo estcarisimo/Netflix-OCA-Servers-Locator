@@ -375,7 +375,17 @@ This implementation leverages TheAleph's ability to analyze PTR records and ASN 
 - Large Language Model inference for location extraction from network naming conventions
 - Fallback to traditional geocoding services for comprehensive coverage
 
-**Note**: TheAleph API integration includes SSL certificate verification workarounds due to current certificate issues with their service. This is documented and expected behavior.
+#### Advanced Features
+
+The application includes advanced networking support and security features:
+
+- **IPv6 Support**: Intelligent handling of IPv6 domains with NAT64 detection and PTR record analysis
+- **HTTPS Security**: Full SSL certificate validation for secure API communications
+- **Hybrid Fallback**: Multi-tier fallback system ensuring reliable location resolution
+
+For comprehensive technical details about IPv6 support, NAT64 handling, and implementation specifications, see the [Technical Documentation](docs/THEALEPH_IPV6_SUPPORT.md).
+
+**Note**: TheAleph API integration now uses full HTTPS security with SSL certificate validation enabled.
 
 ---
 

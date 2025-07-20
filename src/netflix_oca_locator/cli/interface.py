@@ -239,13 +239,13 @@ def display_results(result: OCALocatorResult, settings: Settings) -> None:
             border_style="cyan",
         )
 
-        table.add_column("Domain", style="cyan", no_wrap=True)
-        table.add_column("IP Address", style="green")
-        table.add_column("Location", style="yellow")
-        table.add_column("IATA", style="blue")
-        table.add_column("ASN", style="magenta")
-        table.add_column("Provider", style="dim")
-        table.add_column("Method", style="bright_black")
+        table.add_column("Domain", style="cyan", no_wrap=True, min_width=45)
+        table.add_column("IP Address", style="green", min_width=15)
+        table.add_column("Location", style="yellow", min_width=16)
+        table.add_column("IATA", style="blue", min_width=6)
+        table.add_column("ASN", style="magenta", min_width=6)
+        table.add_column("Provider", style="dim", min_width=17)
+        table.add_column("Method", style="bright_black", min_width=10)
 
         for oca in result.oca_servers:
             location = oca.city or "Unknown"
