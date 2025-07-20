@@ -2,7 +2,7 @@
 
 A modern, feature-rich CLI tool to discover Netflix's Open Connect Appliances (OCAs) allocated to your network. Built with Python, this tool provides detailed insights into Netflix's content delivery infrastructure and helps you understand how Netflix optimizes streaming performance for your location.
 
-[![CI Status](https://github.com/yourusername/Netflix-OCA-Servers-Locator/workflows/CI/badge.svg)](https://github.com/yourusername/Netflix-OCA-Servers-Locator/actions)
+[![CI Status](https://github.com/estcarisimo/Netflix-OCA-Servers-Locator/workflows/CI/badge.svg)](https://github.com/estcarisimo/Netflix-OCA-Servers-Locator/actions)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -31,7 +31,7 @@ Using [uv](https://docs.astral.sh/uv/) (recommended):
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Clone and install
-git clone https://github.com/yourusername/Netflix-OCA-Servers-Locator.git
+git clone https://github.com/estcarisimo/Netflix-OCA-Servers-Locator.git
 cd Netflix-OCA-Servers-Locator
 uv sync
 ```
@@ -243,7 +243,7 @@ src/netflix_oca_locator/
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/Netflix-OCA-Servers-Locator.git
+git clone https://github.com/estcarisimo/Netflix-OCA-Servers-Locator.git
 cd Netflix-OCA-Servers-Locator
 
 # Install with development dependencies
