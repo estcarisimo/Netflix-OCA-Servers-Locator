@@ -48,3 +48,5 @@ This project welcomes contributions and suggestions. Feel free to fork the repos
 ### Acknowledgements
 
 This script has been updated to support Python 3 and to include enhancements in fetching and displaying OCA information. We appreciate all contributions that help in evolving and maintaining this utility.
+
+X
