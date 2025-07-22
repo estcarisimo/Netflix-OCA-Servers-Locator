@@ -235,33 +235,151 @@ class AlephGeocodeService:
         """
         logger.debug(f"Handling IPv6 domain: {domain}")
         
-        # Check if NAT64 (IPv4 address for IPv6 domain)
-        if ip_address and self._detect_ip_type(ip_address) == "ipv4":
-            logger.debug(f"NAT64 detected for IPv6 domain {domain} -> IPv4 {ip_address}")
+        if ip_address:
+            ip_type = self._detect_ip_type(ip_address)
             
-            # Try PTR lookup
-            ptr_record = await self._get_ptr_record(ip_address)
-            
-            if ptr_record and self._is_valid_ptr_for_thealeph(ptr_record):
-                logger.debug(f"Using PTR record {ptr_record} for IPv6 domain {domain}")
+            if ip_type == "ipv4":
+                # NAT64 detected: IPv6 domain resolved to IPv4 address
+                logger.debug(f"NAT64 detected for IPv6 domain {domain} -> IPv4 {ip_address}")
+                return await self._handle_nat64_case(domain, asn, ip_address)
                 
-                # Try with original ASN
-                result = await self._handle_standard_domain(ptr_record, asn, ip_address)
-                if result:
-                    result["original_domain"] = domain
-                    result["nat64_detected"] = True
-                    return result
-                
-                # Try with Netflix ASN
-                result = await self._handle_standard_domain(ptr_record, "2906", ip_address)
-                if result:
-                    result["original_domain"] = domain
-                    result["nat64_detected"] = True
-                    return result
+            elif ip_type == "ipv6":
+                # Pure IPv6 case: IPv6 domain resolved to IPv6 address
+                logger.debug(f"Pure IPv6 detected for domain {domain} -> IPv6 {ip_address}")
+                return await self._handle_pure_ipv6_case(domain, asn, ip_address)
         
-        # Pure IPv6 or failed PTR - use geopy fallback
-        logger.debug(f"Using geopy fallback for IPv6 domain {domain}")
+        # No IP address or invalid - use geopy fallback
+        logger.debug(f"Using geopy fallback for IPv6 domain {domain} (no valid IP)")
         return None  # Will trigger fallback in HybridGeocodeService
+
+    async def _handle_nat64_case(
+        self, domain: str, asn: str | None, ipv4_address: str
+    ) -> dict[str, str | float | None] | None:
+        """
+        Handle NAT64 case where IPv6 domain resolves to IPv4 address.
+        
+        Parameters
+        ----------
+        domain : str
+            Original IPv6 domain.
+        asn : str | None
+            Autonomous System Number.
+        ipv4_address : str
+            IPv4 address from NAT64.
+            
+        Returns
+        -------
+        dict[str, str | float | None] | None
+            Location information or None if resolution fails.
+        """
+        # Try PTR lookup on the IPv4 address
+        ptr_record = await self._get_ptr_record(ipv4_address)
+        
+        if ptr_record and self._is_valid_ptr_for_thealeph(ptr_record):
+            logger.debug(f"Using PTR record {ptr_record} for NAT64 IPv6 domain {domain}")
+            
+            # Try with original ASN
+            result = await self._handle_standard_domain(ptr_record, asn, ipv4_address)
+            if result:
+                result["original_domain"] = domain
+                result["nat64_detected"] = True
+                return result
+            
+            # Try with Netflix ASN fallback
+            result = await self._handle_standard_domain(ptr_record, "2906", ipv4_address)
+            if result:
+                result["original_domain"] = domain
+                result["nat64_detected"] = True
+                result["fallback_used"] = "netflix_asn"
+                return result
+        
+        # PTR lookup failed - try using domain directly with TheAleph workaround
+        logger.debug(f"PTR lookup failed, trying direct domain resolution for NAT64 {domain}")
+        
+        # Try with original ASN
+        result = await self._handle_standard_domain(domain, asn, ipv4_address)
+        if result:
+            result["nat64_detected"] = True
+            return result
+            
+        # Try with Netflix ASN fallback
+        result = await self._handle_standard_domain(domain, "2906", ipv4_address)
+        if result:
+            result["nat64_detected"] = True
+            result["fallback_used"] = "netflix_asn"
+            return result
+        
+        return None
+
+    async def _handle_pure_ipv6_case(
+        self, domain: str, asn: str | None, ipv6_address: str
+    ) -> dict[str, str | float | None] | None:
+        """
+        Handle pure IPv6 case where IPv6 domain resolves to IPv6 address.
+        
+        Since TheAleph doesn't support IPv6 addresses directly, this method
+        implements the IPv6 workaround using PTR record analysis.
+        
+        Parameters
+        ----------
+        domain : str
+            IPv6 domain.
+        asn : str | None
+            Autonomous System Number.
+        ipv6_address : str
+            IPv6 address.
+            
+        Returns
+        -------
+        dict[str, str | float | None] | None
+            Location information or None if resolution fails.
+        """
+        logger.debug(f"Implementing IPv6 workaround for {domain} -> {ipv6_address}")
+        
+        # Try PTR lookup on the IPv6 address
+        ptr_record = await self._get_ptr_record(ipv6_address)
+        
+        if ptr_record and self._is_valid_ptr_for_thealeph(ptr_record):
+            logger.debug(f"Using PTR record {ptr_record} for IPv6 address {ipv6_address}")
+            
+            # Try with original ASN using PTR record
+            result = await self._handle_standard_domain(ptr_record, asn, "")
+            if result:
+                result["original_domain"] = domain
+                result["original_ip"] = ipv6_address
+                result["ipv6_workaround"] = True
+                return result
+            
+            # Try with Netflix ASN fallback using PTR record
+            result = await self._handle_standard_domain(ptr_record, "2906", "")
+            if result:
+                result["original_domain"] = domain
+                result["original_ip"] = ipv6_address
+                result["ipv6_workaround"] = True
+                result["fallback_used"] = "netflix_asn"
+                return result
+        
+        # PTR lookup failed - try using original domain with empty IP
+        logger.debug(f"PTR lookup failed, trying domain-based resolution for IPv6 {domain}")
+        
+        # Try with original ASN
+        result = await self._handle_standard_domain(domain, asn, "")
+        if result:
+            result["original_ip"] = ipv6_address
+            result["ipv6_workaround"] = True
+            return result
+            
+        # Try with Netflix ASN fallback
+        result = await self._handle_standard_domain(domain, "2906", "")
+        if result:
+            result["original_ip"] = ipv6_address
+            result["ipv6_workaround"] = True
+            result["fallback_used"] = "netflix_asn"
+            return result
+        
+        # All IPv6 workarounds failed - return None for geopy fallback
+        logger.debug(f"IPv6 workaround failed for {domain}, falling back to geopy")
+        return None
 
     async def _handle_standard_domain(
         self, domain: str, asn: str | None, ip_address: str | None

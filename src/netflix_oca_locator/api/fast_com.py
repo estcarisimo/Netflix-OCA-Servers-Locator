@@ -8,7 +8,6 @@ to obtain tokens and fetch OCA candidates.
 from __future__ import annotations
 
 import re
-import socket
 from typing import Any
 from urllib.parse import urlparse
 
@@ -23,11 +22,16 @@ from tenacity import (
 
 from ..config.settings import Settings
 from ..core.models import OCAServer
+from .dns_resolver import DNSResolver
 
 
 class FastComAPI:
     """
-    API client for Fast.com interactions.
+    API client for Fast.com interactions with IPv6 support.
+
+    This client provides intelligent DNS resolution for Netflix OCA domains,
+    automatically selecting A (IPv4) or AAAA (IPv6) queries based on domain
+    naming conventions.
 
     Parameters
     ----------
@@ -42,6 +46,8 @@ class FastComAPI:
         Application settings.
     client : httpx.AsyncClient
         HTTP client for API requests.
+    dns_resolver : DNSResolver
+        DNS resolver for IPv4/IPv6 domain resolution.
     """
 
     def __init__(
@@ -53,6 +59,7 @@ class FastComAPI:
             timeout=httpx.Timeout(settings.request_timeout),
             follow_redirects=True,
         )
+        self.dns_resolver = DNSResolver(settings)
 
     async def __aenter__(self) -> FastComAPI:
         """Async context manager entry."""
@@ -225,11 +232,11 @@ class FastComAPI:
                 parsed_url = urlparse(url)
                 domain = parsed_url.netloc
 
-                # Resolve IP address
+                # Resolve IP address using IPv4/IPv6 intelligent resolution
                 try:
-                    ip_address = socket.gethostbyname(domain)
-                except OSError:
-                    logger.warning(f"Failed to resolve IP for {domain}")
+                    ip_address = await self.dns_resolver.resolve_domain(domain)
+                except OSError as e:
+                    logger.warning(f"Failed to resolve IP for {domain}: {e}")
                     continue
 
                 # Create OCA server object
