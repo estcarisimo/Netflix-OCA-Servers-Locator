@@ -21,6 +21,7 @@ WORKDIR /app
 
 # Copy project files
 COPY pyproject.toml ./
+COPY LICENSE ./
 COPY src/ ./src/
 
 # Install dependencies and build the package
