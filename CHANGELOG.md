@@ -11,7 +11,19 @@ than list every change.
 
 ## [Unreleased]
 
-Nothing yet.
+### Removed
+
+- The Codecov upload step. It required a `CODECOV_TOKEN` that was never
+  configured, so it silently did nothing, and a coverage badge is not worth
+  publishing at 24%. Coverage is still reported in the CI job log via
+  `--cov-report=term-missing`, and `uv run pytest --cov=netflix_oca_locator`
+  gives the same numbers locally. Worth revisiting once `api/` and `cli/` have
+  real test coverage.
+
+### Changed
+
+- Reformatted the Python samples in `docs/THEALEPH_IPV6_SUPPORT.md`. Ruff 0.16
+  formats code blocks inside Markdown, which older versions did not.
 
 ## [2.1.0] - 2026-08-30
 

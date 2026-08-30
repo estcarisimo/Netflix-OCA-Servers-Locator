@@ -115,9 +115,7 @@ async def get_ptr_record(ip_address: str) -> str | None:
     """
     try:
         loop = asyncio.get_event_loop()
-        ptr_record = await loop.run_in_executor(
-            None, socket.gethostbyaddr, ip_address
-        )
+        ptr_record = await loop.run_in_executor(None, socket.gethostbyaddr, ip_address)
         return ptr_record[0]
     except socket.herror:
         return None
@@ -157,11 +155,7 @@ def is_valid_ptr_for_thealeph(ptr_record: str) -> bool:
 ### IPv6-Specific Fallback
 
 ```python
-async def resolve_location_with_ipv6_support(
-    domain: str,
-    asn: str,
-    ip_address: str
-) -> dict:
+async def resolve_location_with_ipv6_support(domain: str, asn: str, ip_address: str) -> dict:
     """
     Resolve location with full IPv6 support and fallback chain.
     """
@@ -201,10 +195,7 @@ class IPv6AwareGeocodeService:
     """
 
     async def resolve_domain_location(
-        self,
-        domain: str,
-        asn: str | None = None,
-        ip_address: str | None = None
+        self, domain: str, asn: str | None = None, ip_address: str | None = None
     ) -> dict | None:
         """
         Resolve domain location with IPv6 awareness.
@@ -219,12 +210,7 @@ class IPv6AwareGeocodeService:
         """Check if domain is IPv6-related."""
         return "ipv6" in domain.lower()
 
-    async def _handle_ipv6_domain(
-        self,
-        domain: str,
-        asn: str,
-        ip_address: str
-    ) -> dict | None:
+    async def _handle_ipv6_domain(self, domain: str, asn: str, ip_address: str) -> dict | None:
         """
         Handle IPv6 domains with NAT64 support.
         """
@@ -268,18 +254,18 @@ test_cases = [
     {
         "domain": "ipv6-c001-ord001-ix.1.oca.nflxvideo.net",
         "ip": "2001:db8::1",  # Pure IPv6
-        "expected_flow": "geopy_fallback"
+        "expected_flow": "geopy_fallback",
     },
     {
         "domain": "ipv6-c001-ord001-ix.1.oca.nflxvideo.net",
         "ip": "45.57.120.66",  # NAT64 IPv4
-        "expected_flow": "ptr_lookup -> thealeph"
+        "expected_flow": "ptr_lookup -> thealeph",
     },
     {
         "domain": "ipv4-c001-ord001-ix.1.oca.nflxvideo.net",
         "ip": "45.57.120.66",  # Standard IPv4
-        "expected_flow": "direct_thealeph"
-    }
+        "expected_flow": "direct_thealeph",
+    },
 ]
 ```
 
@@ -289,9 +275,9 @@ test_cases = [
 
 ```python
 # Environment variables for IPv6 support
-NETFLIX_OCA_ENABLE_IPV6_SUPPORT=true
-NETFLIX_OCA_IPV6_FALLBACK_TIMEOUT=5.0
-NETFLIX_OCA_PTR_LOOKUP_TIMEOUT=2.0
+NETFLIX_OCA_ENABLE_IPV6_SUPPORT = true
+NETFLIX_OCA_IPV6_FALLBACK_TIMEOUT = 5.0
+NETFLIX_OCA_PTR_LOOKUP_TIMEOUT = 2.0
 ```
 
 ### Error Handling
@@ -299,14 +285,19 @@ NETFLIX_OCA_PTR_LOOKUP_TIMEOUT=2.0
 ```python
 class IPv6GeocodeError(Exception):
     """Raised when IPv6 geocoding fails."""
+
     pass
+
 
 class NAT64DetectionError(Exception):
     """Raised when NAT64 detection fails."""
+
     pass
+
 
 class PTRLookupError(Exception):
     """Raised when PTR record lookup fails."""
+
     pass
 ```
 
