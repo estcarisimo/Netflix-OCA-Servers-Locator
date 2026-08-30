@@ -99,9 +99,8 @@ select = [
     "SIM", # flake8-simplify
 ]
 ignore = [
-    "E501",  # line too long (handled by formatter)
-    "B008",  # do not perform function calls in argument defaults
-    "UP038", # deprecated upstream: `isinstance(x, X | Y)` is slower than the tuple form
+    "E501", # line too long (handled by formatter)
+    "B008", # do not perform function calls in argument defaults
 ]
 
 [tool.ruff.format]
