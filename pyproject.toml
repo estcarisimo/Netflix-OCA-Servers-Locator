@@ -1,11 +1,11 @@
 [project]
 name = "netflix-oca-locator"
-version = "2.0.0"
+version = "2.1.0"
 description = "A tool to identify Netflix's Open Connect Appliances (OCAs) allocated to your network"
 readme = "README.md"
 license = {file = "LICENSE"}
-authors = [{name = "Esteban Carisimo", email = ""}]
-requires-python = ">=3.9"
+authors = [{name = "Esteban Carisimo"}]
+requires-python = ">=3.10"
 keywords = ["netflix", "oca", "cdn", "network", "streaming", "performance"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -15,10 +15,10 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Internet",
     "Topic :: System :: Networking",
     "Topic :: Utilities",
@@ -39,11 +39,26 @@ dependencies = [
     "urllib3>=2.0.0",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.3.0",
+    "mypy>=1.8.0",
+    "types-requests>=2.31.0",
+    "pandas-stubs>=2.0.0",
+    "pre-commit>=3.6.0",
+    "bandit>=1.7.0",
+]
+
 [project.urls]
-Homepage = "https://github.com/estebancr1993/Netflix-OCA-Servers-Locator"
-Documentation = "https://github.com/estebancr1993/Netflix-OCA-Servers-Locator#readme"
-Repository = "https://github.com/estebancr1993/Netflix-OCA-Servers-Locator.git"
-Issues = "https://github.com/estebancr1993/Netflix-OCA-Servers-Locator/issues"
+Homepage = "https://github.com/estcarisimo/Netflix-OCA-Servers-Locator"
+Documentation = "https://github.com/estcarisimo/Netflix-OCA-Servers-Locator#readme"
+Repository = "https://github.com/estcarisimo/Netflix-OCA-Servers-Locator.git"
+Issues = "https://github.com/estcarisimo/Netflix-OCA-Servers-Locator/issues"
+Changelog = "https://github.com/estcarisimo/Netflix-OCA-Servers-Locator/blob/master/CHANGELOG.md"
 
 [project.scripts]
 netflix-oca-locator = "netflix_oca_locator.__main__:app"
@@ -62,12 +77,12 @@ dev-dependencies = [
     "mypy>=1.8.0",
     "types-requests>=2.31.0",
     "pandas-stubs>=2.0.0",
-    "safety>=3.0.0",
+    "pre-commit>=3.6.0",
     "bandit>=1.7.0",
 ]
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 line-length = 100
 indent-width = 4
 
@@ -84,8 +99,9 @@ select = [
     "SIM", # flake8-simplify
 ]
 ignore = [
-    "E501", # line too long (handled by formatter)
-    "B008", # do not perform function calls in argument defaults
+    "E501",  # line too long (handled by formatter)
+    "B008",  # do not perform function calls in argument defaults
+    "UP038", # deprecated upstream: `isinstance(x, X | Y)` is slower than the tuple form
 ]
 
 [tool.ruff.format]
@@ -95,7 +111,7 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
@@ -110,13 +126,12 @@ strict_equality = true
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["tests"]
+asyncio_mode = "strict"
+# Coverage flags are passed explicitly by CI rather than forced here, so that a
+# bare `pytest` run works without pytest-cov and does not litter the tree.
 addopts = [
     "-ra",
     "--strict-markers",
-    "--cov=netflix_oca_locator",
-    "--cov-report=term-missing",
-    "--cov-report=html",
-    "--cov-report=xml",
 ]
 
 [tool.coverage.run]

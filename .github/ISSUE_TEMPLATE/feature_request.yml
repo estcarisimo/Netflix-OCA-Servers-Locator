@@ -1,0 +1,44 @@
+name: Feature request
+description: Suggest a new capability or an improvement
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe the use case rather than the implementation.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like it to do?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you have considered
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: area
+    attributes:
+      label: Which area does this touch?
+      options:
+        - label: CLI / output formatting
+        - label: Export formats or maps
+        - label: Geolocation (TheAleph, geopy)
+        - label: Measurement methodology (Fast.com, DNS, whois)
+        - label: Packaging, Docker or CI
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues for a duplicate
+          required: true

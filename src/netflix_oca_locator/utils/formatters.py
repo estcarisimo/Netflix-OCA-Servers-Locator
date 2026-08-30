@@ -105,22 +105,24 @@ class ResultFormatter:
         # Prepare data for DataFrame
         data = []
         for oca in result.oca_servers:
-            data.append({
-                "domain": oca.domain,
-                "ip_address": str(oca.ip_address),
-                "city": oca.city or "",
-                "iata_code": oca.iata_code or "",
-                "latitude": oca.latitude or "",
-                "longitude": oca.longitude or "",
-                "asn": oca.asn or "",
-                "geocoding_provider": oca.geocoding_provider or "",
-                "geolocation_approach": oca.geolocation_approach or "",
-                "url": str(oca.url),
-                "user_ip": str(result.public_ip.ip),
-                "user_isp": result.isp_info.as_name,
-                "user_asn": result.isp_info.asn,
-                "query_time": result.query_time.isoformat(),
-            })
+            data.append(
+                {
+                    "domain": oca.domain,
+                    "ip_address": str(oca.ip_address),
+                    "city": oca.city or "",
+                    "iata_code": oca.iata_code or "",
+                    "latitude": oca.latitude or "",
+                    "longitude": oca.longitude or "",
+                    "asn": oca.asn or "",
+                    "geocoding_provider": oca.geocoding_provider or "",
+                    "geolocation_approach": oca.geolocation_approach or "",
+                    "url": str(oca.url),
+                    "user_ip": str(result.public_ip.ip),
+                    "user_isp": result.isp_info.as_name,
+                    "user_asn": result.isp_info.asn,
+                    "query_time": result.query_time.isoformat(),
+                }
+            )
 
         # Create DataFrame and export
         df = pd.DataFrame(data)
@@ -170,19 +172,21 @@ class ResultFormatter:
             # Sheet 2: OCA Servers
             oca_data = []
             for i, oca in enumerate(result.oca_servers, 1):
-                oca_data.append({
-                    "#": i,
-                    "Domain": oca.domain,
-                    "IP Address": str(oca.ip_address),
-                    "City": oca.city or "",
-                    "IATA Code": oca.iata_code or "",
-                    "Latitude": oca.latitude or "",
-                    "Longitude": oca.longitude or "",
-                    "ASN": oca.asn or "",
-                    "Geocoding Provider": oca.geocoding_provider or "",
-                    "Geolocation Method": oca.geolocation_approach or "",
-                    "Speed Test URL": str(oca.url),
-                })
+                oca_data.append(
+                    {
+                        "#": i,
+                        "Domain": oca.domain,
+                        "IP Address": str(oca.ip_address),
+                        "City": oca.city or "",
+                        "IATA Code": oca.iata_code or "",
+                        "Latitude": oca.latitude or "",
+                        "Longitude": oca.longitude or "",
+                        "ASN": oca.asn or "",
+                        "Geocoding Provider": oca.geocoding_provider or "",
+                        "Geolocation Method": oca.geolocation_approach or "",
+                        "Speed Test URL": str(oca.url),
+                    }
+                )
 
             if oca_data:
                 oca_df = pd.DataFrame(oca_data)
@@ -191,14 +195,11 @@ class ResultFormatter:
                 # Auto-adjust column widths
                 worksheet = writer.sheets["OCA Servers"]
                 for column in oca_df:
-                    column_length = max(
-                        oca_df[column].astype(str).map(len).max(),
-                        len(str(column))
-                    )
+                    column_length = max(oca_df[column].astype(str).map(len).max(), len(str(column)))
                     col_idx = oca_df.columns.get_loc(column)
-                    worksheet.column_dimensions[
-                        chr(65 + col_idx)
-                    ].width = min(column_length + 2, 50)
+                    worksheet.column_dimensions[chr(65 + col_idx)].width = min(
+                        column_length + 2, 50
+                    )
 
         logger.info(f"Excel export completed: {output_path}")
 
@@ -237,10 +238,12 @@ class ResultFormatter:
 
         if result.oca_servers:
             # Add table header
-            md_content.extend([
-                "| # | Domain | IP Address | Location | IATA | Coordinates | ASN | Provider | Method |",
-                "|---|--------|------------|----------|------|-------------|-----|----------|--------|",
-            ])
+            md_content.extend(
+                [
+                    "| # | Domain | IP Address | Location | IATA | Coordinates | ASN | Provider | Method |",
+                    "|---|--------|------------|----------|------|-------------|-----|----------|--------|",
+                ]
+            )
 
             # Add table rows
             for i, oca in enumerate(result.oca_servers, 1):
@@ -255,34 +258,36 @@ class ResultFormatter:
                 asn_info = oca.asn or "-"
                 provider = oca.geocoding_provider or "-"
                 method = oca.geolocation_approach or "-"
-                
+
                 md_content.append(
                     f"| {i} | {oca.domain} | {oca.ip_address} | {location} | {iata} | {coords} | {asn_info} | {provider} | {method} |"
                 )
 
             # Add detailed information
-            md_content.extend([
-                "",
-                "### Detailed OCA Information",
-                "",
-            ])
+            md_content.extend(
+                [
+                    "",
+                    "### Detailed OCA Information",
+                    "",
+                ]
+            )
 
             for i, oca in enumerate(result.oca_servers, 1):
-                md_content.extend([
-                    f"#### {i}. {oca.domain}",
-                    "",
-                    f"- **IP Address:** {oca.ip_address}",
-                    f"- **Speed Test URL:** {oca.url}",
-                ])
+                md_content.extend(
+                    [
+                        f"#### {i}. {oca.domain}",
+                        "",
+                        f"- **IP Address:** {oca.ip_address}",
+                        f"- **Speed Test URL:** {oca.url}",
+                    ]
+                )
 
                 if oca.city:
                     md_content.append(f"- **City:** {oca.city}")
                 if oca.iata_code:
                     md_content.append(f"- **IATA Code:** {oca.iata_code}")
                 if oca.latitude and oca.longitude:
-                    md_content.append(
-                        f"- **Coordinates:** {oca.latitude:.6f}, {oca.longitude:.6f}"
-                    )
+                    md_content.append(f"- **Coordinates:** {oca.latitude:.6f}, {oca.longitude:.6f}")
 
                 md_content.append("")
 
@@ -315,12 +320,14 @@ class ResultFormatter:
         # Create DataFrame for easy formatting
         data = []
         for oca in result.oca_servers:
-            data.append({
-                "Domain": oca.domain,
-                "IP Address": str(oca.ip_address),
-                "Location": oca.city or "Unknown",
-                "IATA": oca.iata_code or "-",
-            })
+            data.append(
+                {
+                    "Domain": oca.domain,
+                    "IP Address": str(oca.ip_address),
+                    "Location": oca.city or "Unknown",
+                    "IATA": oca.iata_code or "-",
+                }
+            )
 
         df = pd.DataFrame(data)
         return df.to_string(index=False)

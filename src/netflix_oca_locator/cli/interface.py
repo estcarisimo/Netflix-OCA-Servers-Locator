@@ -156,22 +156,23 @@ def main(
 
     except KeyboardInterrupt:
         console.print("\n[yellow]Operation cancelled by user[/yellow]")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
     except Exception as e:
         console.print(f"\n[red]Error: {e}[/red]")
         if debug:
             console.print_exception()
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
 
 
-async def locate_ocas_async(settings: Settings, quiet: bool) -> OCALocatorResult:
+async def locate_ocas_async(settings: Settings, quiet: bool) -> OCALocatorResult:  # noqa: ARG001
     """
     Asynchronously locate OCAs with progress indication.
 
     Parameters
     ----------
     settings : Settings
-        Application settings.
+        Application settings. Currently unused: ``create_locator`` reads the same
+        cached ``get_settings()`` instance directly, so passing it is redundant.
     quiet : bool
         Whether to suppress progress output.
 
@@ -263,9 +264,7 @@ def display_results(result: OCALocatorResult, settings: Settings) -> None:
             )
 
         console.print(table)
-        console.print(
-            f"\n[green]Found {len(result.oca_servers)} OCA server(s)[/green]"
-        )
+        console.print(f"\n[green]Found {len(result.oca_servers)} OCA server(s)[/green]")
     else:
         console.print("\n[yellow]No OCA servers found[/yellow]")
 
@@ -346,6 +345,7 @@ def generate_map(result: OCALocatorResult, open_browser: bool) -> None:
 
         if open_browser:
             import webbrowser
+
             webbrowser.open(f"file://{map_path.absolute()}")
             console.print("[green]📍 Map opened in browser[/green]")
 

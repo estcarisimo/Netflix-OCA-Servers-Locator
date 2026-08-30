@@ -5,8 +5,6 @@ This module manages application settings using pydantic-settings,
 supporting environment variables and configuration files.
 """
 
-from typing import Optional
-
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -71,15 +69,13 @@ class Settings(BaseSettings):
         description="Logging level",
         pattern="^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$",
     )
-    log_file: Optional[str] = Field(default=None, description="Log file path")
+    log_file: str | None = Field(default=None, description="Log file path")
 
     # API URLs
     ipify_api_url: str = Field(
         default="https://api.ipify.org?format=json", description="IPify API URL"
     )
-    cymru_whois_host: str = Field(
-        default="whois.cymru.com", description="Cymru WHOIS server"
-    )
+    cymru_whois_host: str = Field(default="whois.cymru.com", description="Cymru WHOIS server")
     fast_com_url: str = Field(default="https://fast.com", description="Fast.com URL")
     fast_com_js_pattern: str = Field(
         default=r'<script src="(/app-[a-f0-9]+\.js)"', description="JS file pattern"
@@ -93,9 +89,7 @@ class Settings(BaseSettings):
     )
 
     # Request settings
-    request_timeout: int = Field(
-        default=30, ge=5, le=300, description="Request timeout in seconds"
-    )
+    request_timeout: int = Field(default=30, ge=5, le=300, description="Request timeout in seconds")
     max_retries: int = Field(default=3, ge=1, le=10, description="Max retry attempts")
 
     # Cache settings
@@ -112,17 +106,19 @@ class Settings(BaseSettings):
 
     # Geocoding settings
     geocoding_provider: str = Field(
-        default="hybrid", 
+        default="hybrid",
         description="Geocoding provider (aleph, geopy, hybrid)",
-        pattern="^(aleph|geopy|hybrid)$"
+        pattern="^(aleph|geopy|hybrid)$",
     )
     aleph_api_url: str = Field(
-        default="https://thealeph.ai/api/query", 
-        description="TheAleph API endpoint"
+        default="https://thealeph.ai/api/query", description="TheAleph API endpoint"
     )
+    # Not currently read by AlephGeocodeService, which hardcodes verify=True since
+    # HTTPS was restored in 2.1.0. Kept so the declared config matches actual
+    # behaviour; do not wire it back in without a deliberate security review.
     aleph_ssl_verify: bool = Field(
-        default=False, 
-        description="Verify SSL for TheAleph API (disabled due to cert issues)"
+        default=True,
+        description="Verify TLS certificates for TheAleph API (informational: always enabled)",
     )
 
     @field_validator("log_level")

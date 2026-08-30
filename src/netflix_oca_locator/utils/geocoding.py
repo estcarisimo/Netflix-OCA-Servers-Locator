@@ -75,12 +75,15 @@ class GeocodeService:
     def __init__(self, settings: Settings, geocoder: Nominatim | None = None) -> None:
         """Initialize geocode service."""
         self.settings = settings
-        self.geocoder = geocoder or Nominatim(
-            user_agent=f"{settings.app_name}/{settings.version}"
-        )
+        self.geocoder = geocoder or Nominatim(user_agent=f"{settings.app_name}/{settings.version}")
 
     async def extract_location_from_domain(
-        self, domain: str, asn: str | None = None, ip_address: str | None = None
+        self,
+        domain: str,
+        # asn/ip_address are part of the shared geocode-service signature; this
+        # geopy-based implementation derives location from the domain alone.
+        asn: str | None = None,  # noqa: ARG002
+        ip_address: str | None = None,  # noqa: ARG002
     ) -> dict[str, str | float | None] | None:
         """
         Extract location information from a domain name.
@@ -191,9 +194,7 @@ class GeocodeService:
 
         return None
 
-    async def _geocode_iata(
-        self, iata_code: str
-    ) -> dict[str, str | float | None] | None:
+    async def _geocode_iata(self, iata_code: str) -> dict[str, str | float | None] | None:
         """
         Geocode an IATA airport code.
 
@@ -224,9 +225,7 @@ class GeocodeService:
 
         return None
 
-    async def _geocode_city(
-        self, city_name: str
-    ) -> dict[str, str | float | None] | None:
+    async def _geocode_city(self, city_name: str) -> dict[str, str | float | None] | None:
         """
         Geocode a city name.
 
