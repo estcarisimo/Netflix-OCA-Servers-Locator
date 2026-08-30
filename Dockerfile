@@ -2,7 +2,7 @@
 # Multi-stage build for minimal image size
 
 # Build stage
-FROM python:3.11-alpine AS builder
+FROM python:3.14-alpine AS builder
 
 # Install system dependencies required for building
 RUN apk add --no-cache \
@@ -35,7 +35,7 @@ RUN uv venv && \
     uv pip install --no-deps .
 
 # Runtime stage
-FROM python:3.11-alpine AS runtime
+FROM python:3.14-alpine AS runtime
 
 # Install runtime system dependencies
 RUN apk add --no-cache \

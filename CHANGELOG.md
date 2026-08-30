@@ -20,10 +20,20 @@ than list every change.
   gives the same numbers locally. Worth revisiting once `api/` and `cli/` have
   real test coverage.
 
+### Added
+
+- Python 3.14 to the CI matrix and the package classifiers.
+
 ### Changed
 
+- The Docker image now builds on `python:3.14-alpine` instead of
+  `python:3.11-alpine`. The CI matrix was extended to 3.14 in the same change so
+  the tested range covers what the container actually runs.
+- Upgraded the full locked dependency set, including several majors: pytest
+  8→9, pytest-cov 6→7, rich 14→15, virtualenv 20→21.
 - Reformatted the Python samples in `docs/THEALEPH_IPV6_SUPPORT.md`. Ruff 0.16
   formats code blocks inside Markdown, which older versions did not.
+- Removed the `UP038` ruff ignore; the rule was deleted upstream in ruff 0.16.
 
 ## [2.1.0] - 2026-08-30
 
