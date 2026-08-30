@@ -11,8 +11,22 @@ than list every change.
 
 ## [Unreleased]
 
+Nothing yet.
+
+## [2.1.0] - 2026-08-30
+
+2.1.0 was never actually released: the version string existed only as a stale
+`Dockerfile` label while `pyproject.toml` still said 2.0.0. This release resolves
+that drift and combines the July 2025 IPv6 work with a repository hygiene pass.
+
 ### Added
 
+- **IPv6 support** with intelligent DNS resolution (`api/dns_resolver.py`): selects
+  A or AAAA records based on the OCA domain naming convention, with NAT64 detection
+  and handling. See [docs/THEALEPH_IPV6_SUPPORT.md](docs/THEALEPH_IPV6_SUPPORT.md).
+  (Developed 2025-07-22.)
+- PTR record validation before querying TheAleph, so IPv6-form records are not sent
+  to an endpoint that cannot decode them. (Developed 2025-07-22.)
 - `CONTRIBUTING.md`, `CHANGELOG.md`, `AGENTS.md`, `SECURITY.md` and
   `CODE_OF_CONDUCT.md`. The README had linked to a non-existent `CONTRIBUTING.md`.
 - `.pre-commit-config.yaml` with ruff lint and format hooks. The README had told
@@ -26,6 +40,7 @@ than list every change.
 
 ### Changed
 
+- Restored full HTTPS for TheAleph API requests. (Developed 2025-07-22.)
 - **Minimum Python is now 3.10.** Python 3.9 reached end-of-life in October 2025.
   The CI matrix is now 3.10–3.13.
 - `uv.lock` is now tracked in git, so CI installs the same dependency versions that
@@ -82,20 +97,6 @@ The Docker build itself was independently repaired in #6 and #7 — the missing
 - The session-scoped `event_loop` fixture, removed in pytest-asyncio 1.x.
 - Roughly 120 lines of Node.js/Next.js/Gatsby/Storybook boilerplate from
   `.gitignore`.
-
-## [2.1.0] - 2025-07-22
-
-### Added
-
-- **IPv6 support** with intelligent DNS resolution (`api/dns_resolver.py`): selects
-  A or AAAA records based on the OCA domain naming convention, with NAT64 detection
-  and handling. See [docs/THEALEPH_IPV6_SUPPORT.md](docs/THEALEPH_IPV6_SUPPORT.md).
-- PTR record validation before querying TheAleph, so IPv6-form records are not sent
-  to an endpoint that cannot decode them.
-
-### Changed
-
-- Restored full HTTPS for TheAleph API requests.
 
 ## [2.0.0] - 2025-07-20
 
