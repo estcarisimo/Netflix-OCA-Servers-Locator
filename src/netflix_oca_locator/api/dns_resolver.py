@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import asyncio
 import socket
-from typing import Any
 
 from loguru import logger
 
@@ -66,7 +65,7 @@ class DNSResolver:
             If DNS resolution fails.
         """
         domain_lower = domain.lower()
-        
+
         if "ipv6" in domain_lower:
             logger.debug(f"Detected IPv6 domain, using AAAA query for: {domain}")
             return await self.resolve_ipv6(domain)
@@ -98,7 +97,7 @@ class DNSResolver:
         """
         try:
             logger.debug(f"Resolving IPv4 (A record) for: {domain}")
-            
+
             # Use asyncio to run the synchronous socket call
             loop = asyncio.get_event_loop()
             result = await loop.run_in_executor(
@@ -107,17 +106,17 @@ class DNSResolver:
                 domain,
                 None,
                 socket.AF_INET,  # IPv4 only
-                socket.SOCK_STREAM
+                socket.SOCK_STREAM,
             )
-            
+
             if not result:
                 raise OSError(f"No IPv4 address found for {domain}")
-            
+
             # Extract IP address from the first result
             ip_address = result[0][4][0]
             logger.debug(f"Resolved {domain} to IPv4: {ip_address}")
             return ip_address
-            
+
         except Exception as e:
             logger.warning(f"Failed to resolve IPv4 for {domain}: {e}")
             raise OSError(f"DNS resolution failed for {domain}: {e}") from e
@@ -143,7 +142,7 @@ class DNSResolver:
         """
         try:
             logger.debug(f"Resolving IPv6 (AAAA record) for: {domain}")
-            
+
             # Use asyncio to run the synchronous socket call
             loop = asyncio.get_event_loop()
             result = await loop.run_in_executor(
@@ -152,17 +151,17 @@ class DNSResolver:
                 domain,
                 None,
                 socket.AF_INET6,  # IPv6 only
-                socket.SOCK_STREAM
+                socket.SOCK_STREAM,
             )
-            
+
             if not result:
                 raise OSError(f"No IPv6 address found for {domain}")
-            
+
             # Extract IP address from the first result
             ip_address = result[0][4][0]
             logger.debug(f"Resolved {domain} to IPv6: {ip_address}")
             return ip_address
-            
+
         except Exception as e:
             logger.warning(f"Failed to resolve IPv6 for {domain}: {e}")
             raise OSError(f"DNS resolution failed for {domain}: {e}") from e
@@ -191,7 +190,7 @@ class DNSResolver:
         """
         try:
             logger.debug(f"Resolving any IP (A or AAAA record) for: {domain}")
-            
+
             # Use asyncio to run the synchronous socket call
             loop = asyncio.get_event_loop()
             result = await loop.run_in_executor(
@@ -200,20 +199,20 @@ class DNSResolver:
                 domain,
                 None,
                 socket.AF_UNSPEC,  # Any address family
-                socket.SOCK_STREAM
+                socket.SOCK_STREAM,
             )
-            
+
             if not result:
                 raise OSError(f"No IP address found for {domain}")
-            
+
             # Extract IP address from the first result
             ip_address = result[0][4][0]
-            
+
             # Determine IP version for logging
             ip_version = "IPv6" if ":" in ip_address else "IPv4"
             logger.debug(f"Resolved {domain} to {ip_version}: {ip_address}")
             return ip_address
-            
+
         except Exception as e:
             logger.warning(f"Failed to resolve any IP for {domain}: {e}")
             raise OSError(f"DNS resolution failed for {domain}: {e}") from e
@@ -236,7 +235,7 @@ class DNSResolver:
             # Try to parse as IPv6
             socket.inet_pton(socket.AF_INET6, ip_address)
             return True
-        except socket.error:
+        except OSError:
             return False
 
     def is_ipv4_address(self, ip_address: str) -> bool:
@@ -257,5 +256,5 @@ class DNSResolver:
             # Try to parse as IPv4
             socket.inet_pton(socket.AF_INET, ip_address)
             return True
-        except socket.error:
+        except OSError:
             return False

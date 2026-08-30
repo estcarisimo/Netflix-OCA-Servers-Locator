@@ -50,9 +50,7 @@ class FastComAPI:
         DNS resolver for IPv4/IPv6 domain resolution.
     """
 
-    def __init__(
-        self, settings: Settings, client: httpx.AsyncClient | None = None
-    ) -> None:
+    def __init__(self, settings: Settings, client: httpx.AsyncClient | None = None) -> None:
         """Initialize Fast.com API client."""
         self.settings = settings
         self.client = client or httpx.AsyncClient(

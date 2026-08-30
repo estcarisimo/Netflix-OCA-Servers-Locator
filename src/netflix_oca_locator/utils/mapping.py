@@ -161,8 +161,8 @@ class MapGenerator:
             <h4>Netflix OCA Server</h4>
             <b>Domain:</b> {oca.domain}<br>
             <b>IP:</b> {oca.ip_address}<br>
-            <b>Location:</b> {oca.city or 'Unknown'}<br>
-            {f'<b>IATA:</b> {oca.iata_code}<br>' if oca.iata_code else ''}
+            <b>Location:</b> {oca.city or "Unknown"}<br>
+            {f"<b>IATA:</b> {oca.iata_code}<br>" if oca.iata_code else ""}
             <b>Coordinates:</b> {oca.latitude:.4f}, {oca.longitude:.4f}
         </div>
         """
@@ -178,7 +178,7 @@ class MapGenerator:
     def _add_connection_lines(
         self,
         oca_map: folium.Map,
-        result: OCALocatorResult,
+        result: OCALocatorResult,  # noqa: ARG002 - kept for signature parity with the other _add_* helpers
         ocas: list[OCAServer],
     ) -> None:
         """
@@ -196,9 +196,7 @@ class MapGenerator:
         # Add lines connecting all OCAs (showing the CDN network)
         if len(ocas) > 1:
             coordinates = [
-                [oca.latitude, oca.longitude]
-                for oca in ocas
-                if oca.latitude and oca.longitude
+                [oca.latitude, oca.longitude] for oca in ocas if oca.latitude and oca.longitude
             ]
 
             # Create a subtle network visualization

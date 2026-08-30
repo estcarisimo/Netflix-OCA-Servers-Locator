@@ -1,0 +1,78 @@
+name: Bug report
+description: Something does not work as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Results from this tool depend on your network location and on live
+        third-party services (Fast.com, TheAleph, Team Cymru, Nominatim), so the
+        details below matter more than usual.
+
+        **Please redact your public IP address** if you would rather not publish it.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect, and what did you get instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: command
+    attributes:
+      label: Command and output
+      description: >
+        The exact command you ran, plus the output of running it with `--debug`.
+      render: shell
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `netflix-oca-locator version`
+      placeholder: "2.1.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: How did you install it?
+      options:
+        - uv sync
+        - pip install -e .
+        - Docker
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: OS and Python version
+      placeholder: "macOS 15.2, Python 3.12.4"
+    validations:
+      required: true
+
+  - type: input
+    id: network
+    attributes:
+      label: Approximate location and ISP/ASN
+      description: Optional, but very helpful for geolocation issues.
+      placeholder: "Chicago, US — AS7018"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: The `whois` binary is installed and on my PATH
+          required: false
+        - label: I searched existing issues for a duplicate
+          required: true

@@ -76,7 +76,7 @@ case "$1" in
         echo "🚀 Starting Netflix OCA Locator..."
         echo "📁 Output directory: $OUTPUT_DIR"
         echo "🔧 Arguments: $*"
-        
+
         # Adjust output file paths to use the output directory
         args=""
         while [ $# -gt 0 ]; do
@@ -96,11 +96,11 @@ case "$1" in
                     ;;
             esac
         done
-        
+
         # Execute the main application
         export NETFLIX_OCA_EXPORT_PATH="$OUTPUT_DIR"
         python -m netflix_oca_locator main $args
-        
+
         echo "✅ Execution completed successfully"
         echo "📂 Check output directory for results"
         exit 0

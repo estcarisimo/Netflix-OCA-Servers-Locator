@@ -26,7 +26,7 @@ TheAleph API currently does not support IPv6 addresses directly. However, Netfli
 def is_ipv6_domain(domain: str) -> bool:
     """
     Detect if a domain is IPv6-related based on naming convention.
-    
+
     Netflix IPv6 OCA domains typically contain 'ipv6' in the hostname.
     Example: ipv6-c001-ord001-ix.1.oca.nflxvideo.net
     """
@@ -39,7 +39,7 @@ def is_ipv6_domain(domain: str) -> bool:
 def detect_ip_type(ip_address: str) -> str:
     """
     Determine if an IP address is IPv4, IPv6, or unknown.
-    
+
     Returns:
         "ipv4" - Contains dots but no colons (e.g., "192.168.1.1")
         "ipv6" - Contains colons (e.g., "2001:db8::1")
@@ -89,11 +89,11 @@ async def handle_ipv6_domain(domain: str, ip_address: str, asn: str) -> dict:
     if detect_ip_type(ip_address) == "ipv4":
         # NAT64 scenario - IPv6 domain resolved to IPv4
         ptr_record = await get_ptr_record(ip_address)
-        
+
         if ptr_record and ":" not in ptr_record:
             # Valid PTR record for TheAleph
             return await thealeph_api_call(ptr_record, asn)
-    
+
     # Fallback for pure IPv6 or invalid PTR
     return await geopy_fallback(domain)
 ```
@@ -108,7 +108,7 @@ PTR (Pointer) records map IP addresses to domain names. For Netflix OCAs:
 async def get_ptr_record(ip_address: str) -> str | None:
     """
     Perform reverse DNS lookup to get PTR record.
-    
+
     Example:
         Input: "45.57.120.66"
         Output: "ipv4-c211-ord001-dev-ix.1.oca.nflxvideo.net"
@@ -129,7 +129,7 @@ async def get_ptr_record(ip_address: str) -> str | None:
 def is_valid_ptr_for_thealeph(ptr_record: str) -> bool:
     """
     Validate if a PTR record is suitable for TheAleph API.
-    
+
     Invalid conditions:
     - Contains ":" (IPv6 indicator)
     - Is None or empty
@@ -137,10 +137,10 @@ def is_valid_ptr_for_thealeph(ptr_record: str) -> bool:
     """
     if not ptr_record:
         return False
-    
+
     if ":" in ptr_record:
         return False
-        
+
     # Additional validation can be added
     return True
 ```
@@ -158,8 +158,8 @@ def is_valid_ptr_for_thealeph(ptr_record: str) -> bool:
 
 ```python
 async def resolve_location_with_ipv6_support(
-    domain: str, 
-    asn: str, 
+    domain: str,
+    asn: str,
     ip_address: str
 ) -> dict:
     """
@@ -171,21 +171,21 @@ async def resolve_location_with_ipv6_support(
         if detect_ip_type(ip_address) == "ipv4":
             # NAT64 case - try PTR lookup
             ptr_record = await get_ptr_record(ip_address)
-            
+
             if is_valid_ptr_for_thealeph(ptr_record):
                 # Try TheAleph with PTR record
                 result = await try_thealeph(ptr_record, asn)
                 if result:
                     return result
-                    
+
                 # Fallback to Netflix ASN
                 result = await try_thealeph(ptr_record, "2906")
                 if result:
                     return result
-        
+
         # IPv6 or failed PTR - use geopy
         return await geopy_fallback(domain)
-    
+
     # Standard IPv4 domain handling
     return await standard_thealeph_flow(domain, asn, ip_address)
 ```
@@ -199,11 +199,11 @@ class IPv6AwareGeocodeService:
     """
     Geocoding service with full IPv6 support.
     """
-    
+
     async def resolve_domain_location(
-        self, 
-        domain: str, 
-        asn: str | None = None, 
+        self,
+        domain: str,
+        asn: str | None = None,
         ip_address: str | None = None
     ) -> dict | None:
         """
@@ -214,15 +214,15 @@ class IPv6AwareGeocodeService:
             return await self._handle_ipv6_domain(domain, asn, ip_address)
         else:
             return await self._handle_ipv4_domain(domain, asn, ip_address)
-    
+
     def _is_ipv6_domain(self, domain: str) -> bool:
         """Check if domain is IPv6-related."""
         return "ipv6" in domain.lower()
-    
+
     async def _handle_ipv6_domain(
-        self, 
-        domain: str, 
-        asn: str, 
+        self,
+        domain: str,
+        asn: str,
         ip_address: str
     ) -> dict | None:
         """
@@ -232,11 +232,11 @@ class IPv6AwareGeocodeService:
         if ip_address and "." in ip_address and ":" not in ip_address:
             # Try PTR lookup
             ptr_record = await self.ip_service.get_ptr_record(ip_address)
-            
+
             if ptr_record and ":" not in ptr_record:
                 # Valid PTR for TheAleph
                 logger.debug(f"Using PTR record {ptr_record} for IPv6 domain {domain}")
-                
+
                 # Try with original ASN
                 result = await self.thealeph_service.resolve_domain_location(
                     ptr_record, asn, ip_address
@@ -245,7 +245,7 @@ class IPv6AwareGeocodeService:
                     result["original_domain"] = domain
                     result["nat64_detected"] = True
                     return result
-                
+
                 # Try with Netflix ASN
                 result = await self.thealeph_service.resolve_domain_location(
                     ptr_record, "2906", ip_address
@@ -254,7 +254,7 @@ class IPv6AwareGeocodeService:
                     result["original_domain"] = domain
                     result["nat64_detected"] = True
                     return result
-        
+
         # Fallback to geopy for pure IPv6 or failed PTR
         logger.debug(f"Using geopy fallback for IPv6 domain {domain}")
         return await self.geopy_service.extract_location_from_domain(domain)

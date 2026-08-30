@@ -1,6 +1,5 @@
 """Pytest configuration and fixtures."""
 
-import asyncio
 from unittest.mock import AsyncMock, MagicMock
 
 import httpx
@@ -106,11 +105,3 @@ def temp_export_dir(tmp_path):
     export_dir = tmp_path / "exports"
     export_dir.mkdir()
     return export_dir
-
-
-@pytest.fixture(scope="session")
-def event_loop():
-    """Create event loop for async tests."""
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()

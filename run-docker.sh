@@ -193,7 +193,7 @@ case "$COMMAND" in
 
         # Prepare environment
         mkdir -p "$OUTPUT_DIR"
-        
+
         # Set up Docker environment variables
         ENV_ARGS=""
         if [ "$DEBUG" = true ]; then
@@ -202,7 +202,7 @@ case "$COMMAND" in
 
         print_info "Starting Netflix OCA Locator in Docker..."
         print_info "Output directory: $OUTPUT_DIR"
-        
+
         # Run container
         docker run --rm \
             --name "$CONTAINER_NAME" \
@@ -210,7 +210,7 @@ case "$COMMAND" in
             $ENV_ARGS \
             "$IMAGE_NAME" \
             main "$@"
-        
+
         print_success "Container execution completed"
         print_info "Check $OUTPUT_DIR for output files"
         ;;

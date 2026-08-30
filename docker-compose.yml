@@ -62,7 +62,7 @@ networks:
     driver: bridge
 
 # Example usage:
-# 
+#
 # Production usage (ephemeral):
 #   docker-compose run --rm netflix-oca-locator main --output json
 #   docker-compose run --rm netflix-oca-locator main --map --debug

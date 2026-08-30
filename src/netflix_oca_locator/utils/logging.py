@@ -47,9 +47,7 @@ def setup_logging(
 
     # Simplified format for INFO and above
     simple_format = (
-        "<green>{time:HH:mm:ss}</green> | "
-        "<level>{level: <8}</level> | "
-        "<level>{message}</level>"
+        "<green>{time:HH:mm:ss}</green> | <level>{level: <8}</level> | <level>{message}</level>"
     )
 
     # Add console handler
@@ -119,6 +117,4 @@ class InterceptHandler:
             frame = frame.f_back
             depth += 1
 
-        logger.opt(depth=depth, exception=record.exc_info).log(
-            level, record.getMessage()
-        )
+        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())

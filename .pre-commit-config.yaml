@@ -1,0 +1,24 @@
+# Install with: uv run pre-commit install
+#
+# mypy is deliberately absent: the codebase has pre-existing type errors and a
+# blocking hook would make every commit fail. See CONTRIBUTING.md.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.4
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format

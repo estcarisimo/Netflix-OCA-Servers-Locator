@@ -1,9 +1,10 @@
-# 🌐 Netflix OCA Locator v2.0
+# 🌐 Netflix OCA Locator
 
 A modern, feature-rich CLI tool to discover Netflix's Open Connect Appliances (OCAs) allocated to your network. Built with Python, this tool provides detailed insights into Netflix's content delivery infrastructure and helps you understand how Netflix optimizes streaming performance for your location.
 
-[![CI Status](https://github.com/estcarisimo/Netflix-OCA-Servers-Locator/workflows/CI/badge.svg)](https://github.com/estcarisimo/Netflix-OCA-Servers-Locator/actions)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![CI](https://github.com/estcarisimo/Netflix-OCA-Servers-Locator/actions/workflows/ci.yml/badge.svg)](https://github.com/estcarisimo/Netflix-OCA-Servers-Locator/actions/workflows/ci.yml)
+[![Docker](https://github.com/estcarisimo/Netflix-OCA-Servers-Locator/actions/workflows/docker.yml/badge.svg)](https://github.com/estcarisimo/Netflix-OCA-Servers-Locator/actions/workflows/docker.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## ✨ Features
@@ -17,7 +18,6 @@ A modern, feature-rich CLI tool to discover Netflix's Open Connect Appliances (O
 - ⚡ **Async Performance**: Fast, concurrent API calls
 - 🔒 **Robust Error Handling**: Comprehensive retry logic and graceful degradation
 - 📝 **Detailed Logging**: Configurable logging with file output
-- 🧪 **Comprehensive Testing**: High test coverage with pytest
 - ⚙️ **Flexible Configuration**: Environment variables and settings files
 
 ## 🚀 Quick Start
@@ -39,20 +39,29 @@ uv sync
 Traditional pip installation:
 
 ```bash
+git clone https://github.com/estcarisimo/Netflix-OCA-Servers-Locator.git
+cd Netflix-OCA-Servers-Locator
 pip install -e .
 ```
 
+> **Note:** this package is not published to PyPI — `pip install netflix-oca-locator`
+> will not work. Install from a clone, as shown above.
+
 ### System Requirements
 
-- Python 3.9 or higher
-- `whois` command-line tool:
+- Python 3.10 or higher
+- The `whois` command-line tool:
+
   ```bash
   # Ubuntu/Debian
   sudo apt-get install whois
-  
-  # macOS
-  brew install whois
-  
+
+  # macOS — included with the OS at /usr/bin/whois
+  brew install whois   # only if you want a newer version
+
+  # Alpine
+  apk add whois
+
   # Windows (via WSL or Git Bash)
   # whois is usually available by default
   ```
@@ -222,23 +231,25 @@ NETFLIX_OCA_GEOCODING_PROVIDER=hybrid
 
 The application is built with a modular architecture:
 
-```
+```text
 src/netflix_oca_locator/
-├── api/              # External API integrations
-│   ├── fast_com.py   # Fast.com API client
-│   └── ip_services.py # IP and ISP lookup services
-├── cli/              # Command-line interface
-│   └── interface.py  # Typer-based CLI
-├── core/             # Business logic
-│   ├── models.py     # Pydantic data models
-│   └── oca_locator.py # Main orchestration logic
-├── utils/            # Utility modules
-│   ├── formatters.py # Export formatters
-│   ├── geocoding.py  # Location services
-│   ├── logging.py    # Logging configuration
-│   └── mapping.py    # Map generation
-└── config/           # Configuration management
-    └── settings.py   # Pydantic settings
+├── api/                    # External API integrations
+│   ├── fast_com.py         # Fast.com API client
+│   ├── ip_services.py      # IP and ISP lookup services
+│   └── dns_resolver.py     # IPv4/IPv6 DNS resolution and NAT64 handling
+├── cli/                    # Command-line interface
+│   └── interface.py        # Typer-based CLI
+├── core/                   # Business logic
+│   ├── models.py           # Pydantic data models
+│   └── oca_locator.py      # Main orchestration logic
+├── utils/                  # Utility modules
+│   ├── aleph_geocoding.py  # TheAleph client and hybrid fallback chain
+│   ├── formatters.py       # Export formatters
+│   ├── geocoding.py        # Location services
+│   ├── logging.py          # Logging configuration
+│   └── mapping.py          # Map generation
+└── config/                 # Configuration management
+    └── settings.py         # Pydantic settings
 ```
 
 ## 🧪 Development
@@ -251,9 +262,10 @@ git clone https://github.com/estcarisimo/Netflix-OCA-Servers-Locator.git
 cd Netflix-OCA-Servers-Locator
 
 # Install with development dependencies
-uv sync --all-extras --dev
+uv sync --dev
+# ...or, without uv:  pip install -e ".[dev]"
 
-# Install pre-commit hooks
+# Install pre-commit hooks (ruff lint + format on staged files)
 uv run pre-commit install
 ```
 
@@ -264,11 +276,15 @@ uv run pre-commit install
 uv run pytest
 
 # Run with coverage
-uv run pytest --cov=netflix_oca_locator
+uv run pytest --cov=netflix_oca_locator --cov-report=term-missing
 
 # Run specific test file
 uv run pytest tests/test_core/test_models.py -v
 ```
+
+Tests never make real network calls. Coverage currently sits at about 24%,
+concentrated in `core/models.py` and `config/settings.py` — the CLI and the `api/`
+clients are not covered yet, and contributions there are especially welcome.
 
 ### Code Quality
 
@@ -283,6 +299,10 @@ uv run ruff format .
 uv run mypy src/
 ```
 
+`ruff check` and `ruff format` are enforced in CI. `mypy` is **advisory**: there is
+a backlog of pre-existing type errors, so the CI step does not fail on them. Please
+don't add new ones. See [CONTRIBUTING.md](CONTRIBUTING.md) for the details.
+
 ### Building
 
 ```bash
@@ -295,9 +315,9 @@ uv pip install dist/*.whl
 
 ## 📊 Example Output
 
-```
+```text
 ╔═══════════════════════════════════════════════════════════╗
-║         🌐 Netflix OCA Locator v2.0.0 🌐                  ║
+║         🌐 Netflix OCA Locator v2.1.0 🌐                  ║
 ║                                                           ║
 ║  Discover Netflix's Open Connect Appliances serving       ║
 ║  your network for optimal streaming performance           ║
@@ -328,13 +348,25 @@ Found 5 OCA server(s)
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+We welcome contributions! Please see the [Contributing Guidelines](CONTRIBUTING.md)
+for setup instructions, the development workflow, and what to include in a bug report.
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+
+### Project documentation
+
+| Document | Contents |
+| --- | --- |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Development setup, workflow, PR expectations |
+| [CHANGELOG.md](CHANGELOG.md) | Release history |
+| [AGENTS.md](AGENTS.md) | Guidance for AI coding agents working in this repo |
+| [SECURITY.md](SECURITY.md) | Vulnerability reporting, and what data this tool handles |
+| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Community standards |
+| [docs/THEALEPH_IPV6_SUPPORT.md](docs/THEALEPH_IPV6_SUPPORT.md) | IPv6 and NAT64 implementation notes |
 
 ## 📄 License
 
@@ -355,15 +387,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### Enhanced Geocoding Attribution
 
-This application uses **TheAleph API** (https://thealeph.ai) for enhanced geocoding and location resolution of network infrastructure. TheAleph provides superior accuracy for CDN and network node geolocation compared to standard geocoding services.
+This application uses **TheAleph API** (<https://thealeph.ai>) for enhanced geocoding and location resolution of network infrastructure. TheAleph provides superior accuracy for CDN and network node geolocation compared to standard geocoding services.
 
 #### TheAleph Research Citation
 
 TheAleph is based on cutting-edge research in DNS PTR record analysis using Large Language Models:
 
-**Paper**: *"The Aleph: Decoding DNS PTR Records With Large Language Models"*  
-**Authors**: Kedar Thiagarajan, Esteban Carisimo, and Fabián E. Bustamante  
-**Conference**: ACM CoNEXT, December 2025  
+**Paper**: *"The Aleph: Decoding DNS PTR Records With Large Language Models"*
+**Authors**: Kedar Thiagarajan, Esteban Carisimo, and Fabián E. Bustamante
+**Conference**: ACM CoNEXT, December 2025
 **Link**: [https://estcarisimo.github.io/assets/pdf/papers/2025-the-aleph.pdf](https://estcarisimo.github.io/assets/pdf/papers/2025-the-aleph.pdf)
 
 #### Integration Details
@@ -371,7 +403,7 @@ TheAleph is based on cutting-edge research in DNS PTR record analysis using Larg
 This implementation leverages TheAleph's ability to analyze PTR records and ASN information to provide enhanced location resolution for Netflix OCA servers. The system combines:
 
 - DNS PTR record analysis for infrastructure mapping
-- ASN (Autonomous System Number) correlation for network topology understanding  
+- ASN (Autonomous System Number) correlation for network topology understanding
 - Large Language Model inference for location extraction from network naming conventions
 - Fallback to traditional geocoding services for comprehensive coverage
 

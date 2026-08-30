@@ -19,9 +19,14 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 # Set working directory
 WORKDIR /app
 
-# Copy project files
-COPY pyproject.toml ./
-COPY LICENSE README.md ./
+# Copy project files. LICENSE and README.md are required by the build backend:
+# pyproject.toml declares `license = {file = "LICENSE"}` and `readme = "README.md"`,
+# and hatchling fails the build if either is missing.
+#
+# uv.lock is deliberately not copied: the install below uses `uv pip install`,
+# which does not read a lockfile. Switch to `uv sync --frozen` if you want the
+# image pinned to the locked dependency set.
+COPY pyproject.toml LICENSE README.md ./
 COPY src/ ./src/
 
 # Install dependencies and build the package

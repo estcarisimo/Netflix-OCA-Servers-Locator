@@ -7,29 +7,66 @@ on:
   pull_request:
     branches: [ master, main ]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   IMAGE_NAME: netflix-oca-locator
 
 jobs:
+  # Single-platform build, loaded into the local daemon so the image can
+  # actually be run. A multi-platform build cannot be `load`ed, which is why
+  # the arm64 build lives in its own job below.
   docker-build:
+    name: Build and smoke test (amd64)
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      uses: docker/setup-buildx-action@v4
 
-    - name: Log in to Docker Hub
-      if: github.event_name != 'pull_request'
-      uses: docker/login-action@v3
+    - name: Build image
+      uses: docker/build-push-action@v7
       with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+        context: .
+        platforms: linux/amd64
+        load: true
+        push: false
+        tags: ${{ env.IMAGE_NAME }}:ci
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Smoke test the image
+      run: |
+        docker run --rm ${{ env.IMAGE_NAME }}:ci version
+        docker run --rm ${{ env.IMAGE_NAME }}:ci info
+        docker run --rm ${{ env.IMAGE_NAME }}:ci --help
+
+  # Proves the image still builds for arm64. Nothing is executed here: a
+  # foreign-architecture image cannot be run on an amd64 runner.
+  docker-multiarch:
+    name: Build multi-arch (amd64 + arm64)
+    runs-on: ubuntu-latest
+    needs: docker-build
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v4
 
     - name: Extract metadata
       id: meta
-      uses: docker/metadata-action@v5
+      uses: docker/metadata-action@v6
       with:
         images: ${{ env.IMAGE_NAME }}
         tags: |
@@ -39,8 +76,8 @@ jobs:
           type=semver,pattern={{major}}.{{minor}}
           type=sha
 
-    - name: Build Docker image
-      uses: docker/build-push-action@v5
+    - name: Build for both platforms
+      uses: docker/build-push-action@v7
       with:
         context: .
         platforms: linux/amd64,linux/arm64
@@ -50,78 +87,39 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-    - name: Test Docker image
-      run: |
-        docker run --rm ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }} version
-        docker run --rm ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }} info
-
   docker-security:
+    name: Trivy scan
     runs-on: ubuntu-latest
     needs: docker-build
+    permissions:
+      contents: read
+      security-events: write
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      uses: docker/setup-buildx-action@v4
 
     - name: Build image for security scan
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v7
       with:
         context: .
+        platforms: linux/amd64
         load: true
+        push: false
         tags: ${{ env.IMAGE_NAME }}:security-scan
+        cache-from: type=gha
 
     - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
+      uses: aquasecurity/trivy-action@v0.36.0
       with:
         image-ref: ${{ env.IMAGE_NAME }}:security-scan
         format: 'sarif'
         output: 'trivy-results.sarif'
 
     - name: Upload Trivy scan results
-      uses: github/codeql-action/upload-sarif@v3
+      uses: github/codeql-action/upload-sarif@v4
       if: always()
       with:
         sarif_file: 'trivy-results.sarif'
-
-  docker-integration:
-    runs-on: ubuntu-latest
-    needs: docker-build
-    if: github.ref == 'refs/heads/master'
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
-    - name: Build test image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        load: true
-        tags: ${{ env.IMAGE_NAME }}:test
-
-    - name: Create test output directory
-      run: mkdir -p ${{ github.workspace }}/test-output
-
-    - name: Test Docker functionality
-      run: |
-        # Test basic functionality
-        docker run --rm \
-          -v ${{ github.workspace }}/test-output:/app/output \
-          ${{ env.IMAGE_NAME }}:test version
-
-        # Test help command
-        docker run --rm ${{ env.IMAGE_NAME }}:test --help
-
-        # Test info command
-        docker run --rm ${{ env.IMAGE_NAME }}:test info
-
-    - name: Upload test artifacts
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: docker-test-output
-        path: test-output/

@@ -44,9 +44,7 @@ class IPServices:
         HTTP client for API requests.
     """
 
-    def __init__(
-        self, settings: Settings, client: httpx.AsyncClient | None = None
-    ) -> None:
+    def __init__(self, settings: Settings, client: httpx.AsyncClient | None = None) -> None:
         """Initialize IP Services."""
         self.settings = settings
         self.client = client or httpx.AsyncClient(
@@ -215,7 +213,7 @@ class IPServices:
             raise ValueError("Mismatched headers and values in WHOIS response")
 
         # Create a dictionary mapping headers to values
-        data_dict: dict[str, str] = dict(zip(headers, values))
+        data_dict: dict[str, str] = dict(zip(headers, values, strict=False))
 
         # Map to our ISPInfo model fields
         try:
@@ -250,18 +248,16 @@ class IPServices:
         """
         try:
             logger.debug(f"Looking up PTR record for {ip_address}")
-            
+
             # Use asyncio to run the synchronous socket call
             loop = asyncio.get_event_loop()
-            ptr_record = await loop.run_in_executor(
-                None, socket.gethostbyaddr, ip_address
-            )
-            
+            ptr_record = await loop.run_in_executor(None, socket.gethostbyaddr, ip_address)
+
             # gethostbyaddr returns (hostname, aliaslist, ipaddrlist)
             hostname = ptr_record[0]
             logger.debug(f"PTR record for {ip_address}: {hostname}")
             return hostname
-            
+
         except socket.herror as e:
             logger.debug(f"No PTR record found for {ip_address}: {e}")
             return None
@@ -289,7 +285,7 @@ class IPServices:
             Comprehensive OCA network details.
         """
         logger.debug(f"Resolving comprehensive details for {domain} ({ip_address})")
-        
+
         details = {
             "domain": domain,
             "ip_address": ip_address,
@@ -297,14 +293,14 @@ class IPServices:
             "isp_info": None,
             "asn": None,
         }
-        
+
         try:
             # Get PTR record
             ptr_record = await self.get_ptr_record(ip_address)
             if ptr_record:
                 details["ptr_record"] = ptr_record
                 logger.debug(f"Found PTR record: {ptr_record}")
-            
+
             # Get ISP information including ASN
             try:
                 isp_info = await self.get_isp_info(ip_address)
@@ -319,9 +315,9 @@ class IPServices:
                 logger.debug(f"Found ASN: AS{isp_info.asn} ({isp_info.as_name})")
             except Exception as e:
                 logger.warning(f"Could not get ISP info for {ip_address}: {e}")
-            
+
             return details
-            
+
         except Exception as e:
             logger.error(f"Error resolving OCA details for {domain}: {e}")
             return details

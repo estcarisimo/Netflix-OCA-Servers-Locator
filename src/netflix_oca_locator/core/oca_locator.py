@@ -14,8 +14,8 @@ from loguru import logger
 from ..api.fast_com import FastComAPI
 from ..api.ip_services import IPServices
 from ..config.settings import Settings
-from ..utils.geocoding import GeocodeService
 from ..utils.aleph_geocoding import HybridGeocodeService
+from ..utils.geocoding import GeocodeService
 from .models import OCALocatorResult, OCAServer
 
 
@@ -64,7 +64,7 @@ class OCALocator:
         self.settings = settings
         self.ip_service = ip_service or IPServices(settings)
         self.fast_com_api = fast_com_api or FastComAPI(settings)
-        
+
         # Choose geocoding service based on configuration
         if geocode_service is not None:
             self.geocode_service = geocode_service
@@ -72,6 +72,7 @@ class OCALocator:
             self.geocode_service = HybridGeocodeService(settings)
         elif settings.geocoding_provider == "aleph":
             from ..utils.aleph_geocoding import AlephGeocodeService
+
             self.geocode_service = AlephGeocodeService(settings)
         else:
             self.geocode_service = GeocodeService(settings)
@@ -168,7 +169,11 @@ class OCALocator:
 
         return result
 
-    async def _enrich_single_oca(self, oca: OCAServer, user_asn: str | None = None) -> OCAServer:
+    async def _enrich_single_oca(
+        self,
+        oca: OCAServer,
+        user_asn: str | None = None,  # noqa: ARG002 - kept for backward compatibility
+    ) -> OCAServer:
         """
         Enrich a single OCA server with geolocation.
 
@@ -186,7 +191,7 @@ class OCALocator:
         """
         # Step 1: Lookup ASN and AS name for this specific OCA's IP address
         oca_asn, as_name = await self._get_oca_asn_info(str(oca.ip_address))
-        
+
         # Step 2: Try to extract location from domain using OCA's own ASN and IP
         location_info = await self.geocode_service.extract_location_from_domain(
             oca.domain, oca_asn, str(oca.ip_address)
@@ -199,7 +204,7 @@ class OCALocator:
             oca.longitude = location_info.get("longitude")
             # Store the geocoding approach (method used)
             oca.geolocation_approach = location_info.get("provider", "unknown")
-            
+
         # Use AS name as provider (network provider)
         oca.geocoding_provider = as_name or "unknown"
         # Store the OCA's individual ASN
@@ -223,16 +228,18 @@ class OCALocator:
         """
         try:
             logger.debug(f"Looking up ASN for OCA IP: {ip_address}")
-            
+
             # Try to get ISP info for this specific OCA IP
             isp_info = await self.ip_service.get_isp_info(ip_address)
             if isp_info and isp_info.asn:
-                logger.debug(f"Found ASN {isp_info.asn} ({isp_info.as_name}) for OCA IP {ip_address}")
+                logger.debug(
+                    f"Found ASN {isp_info.asn} ({isp_info.as_name}) for OCA IP {ip_address}"
+                )
                 return isp_info.asn, isp_info.as_name
-                
+
         except Exception as e:
             logger.warning(f"Failed to lookup ASN for OCA IP {ip_address}: {e}")
-        
+
         # Fallback to Netflix's ASN
         logger.debug(f"Using Netflix fallback ASN (2906) for OCA IP {ip_address}")
         return "2906", "AS-SSI"
