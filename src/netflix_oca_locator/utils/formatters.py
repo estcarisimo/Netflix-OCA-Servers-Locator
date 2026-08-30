@@ -111,8 +111,9 @@ class ResultFormatter:
                     "ip_address": str(oca.ip_address),
                     "city": oca.city or "",
                     "iata_code": oca.iata_code or "",
-                    "latitude": oca.latitude or "",
-                    "longitude": oca.longitude or "",
+                    # `or ""` would turn a valid 0.0 into an empty cell.
+                    "latitude": oca.latitude if oca.latitude is not None else "",
+                    "longitude": oca.longitude if oca.longitude is not None else "",
                     "asn": oca.asn or "",
                     "geocoding_provider": oca.geocoding_provider or "",
                     "geolocation_approach": oca.geolocation_approach or "",
@@ -179,8 +180,8 @@ class ResultFormatter:
                         "IP Address": str(oca.ip_address),
                         "City": oca.city or "",
                         "IATA Code": oca.iata_code or "",
-                        "Latitude": oca.latitude or "",
-                        "Longitude": oca.longitude or "",
+                        "Latitude": oca.latitude if oca.latitude is not None else "",
+                        "Longitude": oca.longitude if oca.longitude is not None else "",
                         "ASN": oca.asn or "",
                         "Geocoding Provider": oca.geocoding_provider or "",
                         "Geolocation Method": oca.geolocation_approach or "",
@@ -251,7 +252,7 @@ class ResultFormatter:
                 iata = oca.iata_code or "-"
                 coords = (
                     f"{oca.latitude:.4f}, {oca.longitude:.4f}"
-                    if oca.latitude and oca.longitude
+                    if oca.latitude is not None and oca.longitude is not None
                     else "-"
                 )
 
@@ -286,7 +287,7 @@ class ResultFormatter:
                     md_content.append(f"- **City:** {oca.city}")
                 if oca.iata_code:
                     md_content.append(f"- **IATA Code:** {oca.iata_code}")
-                if oca.latitude and oca.longitude:
+                if oca.latitude is not None and oca.longitude is not None:
                     md_content.append(f"- **Coordinates:** {oca.latitude:.6f}, {oca.longitude:.6f}")
 
                 md_content.append("")

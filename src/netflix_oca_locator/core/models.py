@@ -7,9 +7,25 @@ used throughout the application.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from pydantic import BaseModel, Field, HttpUrl, IPvAnyAddress, field_validator
+
+
+def _utc_now() -> datetime:
+    """
+    Return the current time as a timezone-aware UTC datetime.
+
+    Replaces ``datetime.utcnow()``, which is deprecated and scheduled for removal
+    and returned a naive datetime. Timestamps serialised with ``isoformat()`` now
+    carry an explicit ``+00:00`` offset instead of being implicitly UTC.
+
+    Returns
+    -------
+    datetime
+        Current time, timezone-aware, in UTC.
+    """
+    return datetime.now(timezone.utc)
 
 
 class PublicIPInfo(BaseModel):
@@ -32,7 +48,7 @@ class PublicIPInfo(BaseModel):
     """
 
     ip: IPvAnyAddress
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=_utc_now)
 
 
 class ISPInfo(BaseModel):
@@ -199,7 +215,7 @@ class OCALocatorResult(BaseModel):
     public_ip: PublicIPInfo
     isp_info: ISPInfo
     oca_servers: list[OCAServer]
-    query_time: datetime = Field(default_factory=datetime.utcnow)
+    query_time: datetime = Field(default_factory=_utc_now)
     fast_com_token: str = Field(..., description="Fast.com API token")
 
 
