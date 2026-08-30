@@ -23,6 +23,43 @@ than list every change.
 ### Added
 
 - Python 3.14 to the CI matrix and the package classifiers.
+- Regression tests for coordinates of exactly 0.0 and for timezone-aware
+  timestamps, covering both defects below. Test coverage rose from 24% to 31%
+  (`utils/mapping.py` 27% → 88%, `utils/formatters.py` 18% → 68%).
+
+### Fixed
+
+- **Coordinates of exactly 0.0 were silently discarded** from maps and exports
+  ([#9]). `latitude`/`longitude` are `float | None` with `None` meaning
+  "unknown", but ten call sites tested them for truthiness, so `0.0` was treated
+  as absent: the OCA vanished from the generated map and its coordinate was
+  written as an empty cell in CSV and XLSX. Latitude 0.0 is the equator, but
+  **longitude 0.0 is the prime meridian through Greenwich**, so a London OCA was
+  a realistic trigger. All ten sites now test `is not None`. Verified that no
+  geocoding path uses `0.0` as an "unknown" sentinel — `-1.0` is the placeholder,
+  guarded separately in `HybridGeocodeService._is_good_result`.
+
+### Changed
+
+- **`datetime.utcnow()` replaced with `datetime.now(timezone.utc)`** ([#22]). The
+  old call is deprecated and scheduled for removal, and returned a *naive*
+  datetime that was UTC only by convention.
+
+  **This changes export output.** `PublicIPInfo.timestamp` and
+  `OCALocatorResult.query_time` are now timezone-aware, so `isoformat()` emits an
+  explicit offset:
+
+  - JSON `query_time` / `timestamp`: `2026-08-30T16:00:00` →
+    `2026-08-30T16:00:00+00:00`
+  - CSV `query_time` column: same change
+
+  The XLSX and Markdown exports are **unaffected** — they format with
+  `strftime("%Y-%m-%d %H:%M:%S UTC")`, which ignores tzinfo and already stated
+  UTC explicitly. If you parse the JSON or CSV timestamps downstream with a
+  naive-datetime assumption, this is a breaking change.
+
+[#9]: https://github.com/estcarisimo/Netflix-OCA-Servers-Locator/issues/9
+[#22]: https://github.com/estcarisimo/Netflix-OCA-Servers-Locator/issues/22
 
 ### Changed
 

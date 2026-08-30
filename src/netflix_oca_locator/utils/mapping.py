@@ -62,8 +62,13 @@ class MapGenerator:
             output_dir.mkdir(parents=True, exist_ok=True)
             output_path = output_dir / "oca_locations_map.html"
 
-        # Get OCAs with coordinates
-        located_ocas = [oca for oca in result.oca_servers if oca.latitude and oca.longitude]
+        # Get OCAs with coordinates. Test against None rather than truthiness:
+        # 0.0 is a valid coordinate (the equator and the prime meridian).
+        located_ocas = [
+            oca
+            for oca in result.oca_servers
+            if oca.latitude is not None and oca.longitude is not None
+        ]
 
         if not located_ocas:
             logger.warning("No OCAs with location data found, creating empty map")
@@ -115,8 +120,8 @@ class MapGenerator:
             return (39.8283, -98.5795)
 
         # Calculate average position
-        lats = [oca.latitude for oca in ocas if oca.latitude]
-        lons = [oca.longitude for oca in ocas if oca.longitude]
+        lats = [oca.latitude for oca in ocas if oca.latitude is not None]
+        lons = [oca.longitude for oca in ocas if oca.longitude is not None]
 
         if lats and lons:
             return (sum(lats) / len(lats), sum(lons) / len(lons))
@@ -152,7 +157,7 @@ class MapGenerator:
         oca : OCAServer
             OCA server to add.
         """
-        if not (oca.latitude and oca.longitude):
+        if oca.latitude is None or oca.longitude is None:
             return
 
         # Create popup content
@@ -196,7 +201,9 @@ class MapGenerator:
         # Add lines connecting all OCAs (showing the CDN network)
         if len(ocas) > 1:
             coordinates = [
-                [oca.latitude, oca.longitude] for oca in ocas if oca.latitude and oca.longitude
+                [oca.latitude, oca.longitude]
+                for oca in ocas
+                if oca.latitude is not None and oca.longitude is not None
             ]
 
             # Create a subtle network visualization
