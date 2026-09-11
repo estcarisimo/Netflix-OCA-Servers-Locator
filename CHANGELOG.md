@@ -11,6 +11,19 @@ than list every change.
 
 ## [Unreleased]
 
+### Security
+
+- **Cleared all ten open Trivy findings against the Docker image** (9 HIGH,
+  1 MEDIUM). Seven were util-linux/`libuuid` CVEs already fixed in
+  Alpine but not yet in the `python:3.14-alpine` tag; the runtime stage now
+  runs `apk upgrade` before installing its packages. The other three
+  (`msgpack` GHSA-6v7p-g79w-8964, `setuptools` CVE-2025-47273 and
+  CVE-2026-59890) were pip's *vendored* copies in `pip/_vendor/`, not anything
+  the application imports. The runtime image never installs packages — the venv
+  is built in the builder stage — so pip and the `ensurepip` wheel are now
+  removed from the final image. Trivy reports zero findings at any severity
+  afterwards; the CI smoke tests and the container healthcheck are unaffected.
+
 ### Removed
 
 - The Codecov upload step. It required a `CODECOV_TOKEN` that was never
