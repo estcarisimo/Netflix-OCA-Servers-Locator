@@ -37,11 +37,21 @@ RUN uv venv && \
 # Runtime stage
 FROM python:3.14-alpine AS runtime
 
-# Install runtime system dependencies
-RUN apk add --no-cache \
+# Upgrade the base packages first: the python:*-alpine tag is rebuilt less
+# often than Alpine ships security fixes, so the image otherwise inherits
+# already-patched CVEs (e.g. util-linux/libuuid) that the Trivy scan flags.
+RUN apk upgrade --no-cache && \
+    apk add --no-cache \
     whois \
     curl \
     ca-certificates
+
+# The runtime never installs anything: the venv is fully built in the builder
+# stage, so the interpreter's bundled pip is dead weight. It also vendors its
+# own copies of msgpack and setuptools (pip/_vendor/vendor.txt), which Trivy
+# scans and reports against, so remove pip and the ensurepip wheel outright.
+RUN /usr/local/bin/python -m pip uninstall --yes pip && \
+    rm -rf /usr/local/lib/python3.14/ensurepip/_bundled
 
 # Create non-root user for security
 RUN addgroup -g 1000 netflix && \
