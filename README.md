@@ -44,8 +44,11 @@ cd Netflix-OCA-Servers-Locator
 pip install -e .
 ```
 
-> **Note:** this package is not published to PyPI — `pip install netflix-oca-locator`
-> will not work. Install from a clone, as shown above.
+> **Note:** this package is not on PyPI yet. Publishing a GitHub Release uploads
+> it with [Trusted Publishing](https://docs.pypi.org/trusted-publishers/)
+> (`.github/workflows/publish.yml`). Until that first release is published,
+> `pip install netflix-oca-locator` will not work. Install from a clone, as
+> shown above.
 
 ### System Requirements
 
@@ -367,6 +370,26 @@ for setup instructions, the development workflow, and what to include in a bug r
 | [SECURITY.md](SECURITY.md) | Vulnerability reporting, and what data this tool handles |
 | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Community standards |
 | [docs/THEALEPH_IPV6_SUPPORT.md](docs/THEALEPH_IPV6_SUPPORT.md) | IPv6 and NAT64 implementation notes |
+| [CITATION.cff](CITATION.cff) | Citation metadata for research use |
+
+## 📝 Citation
+
+If you use Netflix OCA Locator in your research, please cite it. GitHub's
+"Cite this repository" button reads [`CITATION.cff`](CITATION.cff).
+
+```bibtex
+@software{carisimo2026netflixoca,
+  author  = {Carisimo, Esteban},
+  title   = {Netflix {OCA} Locator},
+  year    = {2026},
+  version = {2.1.0},
+  url     = {https://github.com/estcarisimo/Netflix-OCA-Servers-Locator},
+  license = {MIT}
+}
+```
+
+The geolocation approach uses TheAleph. That work has its own paper; see
+[Enhanced Geocoding Attribution](#enhanced-geocoding-attribution) below.
 
 ## 📄 License
 

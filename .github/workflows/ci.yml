@@ -37,6 +37,21 @@ jobs:
     - name: Format check with ruff
       run: uv run ruff format --check .
 
+    - name: Validate CITATION.cff
+      run: |
+        uvx cffconvert --validate
+        pkg_version="$(awk -F'"' '/^version = /{print $2; exit}' pyproject.toml)"
+        cite_version="$(awk '/^version:/{gsub(/"/, "", $2); print $2; exit}' CITATION.cff)"
+        echo "pyproject.toml ${pkg_version}, CITATION.cff ${cite_version}"
+        if [ "$pkg_version" != "$cite_version" ]; then
+          echo "::error::CITATION.cff version (${cite_version}) does not match pyproject.toml (${pkg_version})"
+          exit 1
+        fi
+        if ! grep -q "version = {${pkg_version}}" README.md; then
+          echo "::error::README citation does not mention version ${pkg_version}"
+          exit 1
+        fi
+
     # Non-blocking: the codebase currently has ~33 pre-existing mypy errors,
     # some of which need behavioural review rather than a mechanical fix.
     # Contributions that reduce this are welcome; see CONTRIBUTING.md.

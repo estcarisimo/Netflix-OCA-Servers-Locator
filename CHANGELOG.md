@@ -35,6 +35,13 @@ than list every change.
 
 ### Added
 
+- `CITATION.cff`, so the software can be cited (Esteban Carisimo). GitHub's
+  "Cite this repository" button reads it. CI checks the file with `cffconvert`
+  and checks that its version matches `pyproject.toml`.
+- A Publish workflow (`.github/workflows/publish.yml`) that uploads the package
+  to PyPI with Trusted Publishing (OpenID Connect, no API token). It runs only
+  when a GitHub release is published, or when someone dispatches it by hand.
+  Nothing is uploaded until a trusted publisher is configured on PyPI.
 - Python 3.14 to the CI matrix and the package classifiers.
 - Regression tests for coordinates of exactly 0.0 and for timezone-aware
   timestamps, covering both defects below. Test coverage rose from 24% to 31%
