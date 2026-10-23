@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use Netflix OCA Locator in your research, please cite it using the metadata from this file."
+type: software
+title: "Netflix OCA Locator"
+abstract: >-
+  A command-line tool that discovers which Netflix Open Connect Appliances
+  (OCAs) are allocated to a network, then enriches them with ASN, ISP and
+  geolocation data.
+authors:
+  - family-names: Carisimo
+    given-names: Esteban
+    email: esteban.carisimo@northwestern.edu
+    affiliation: Northwestern University
+repository-code: https://github.com/estcarisimo/Netflix-OCA-Servers-Locator
+license: MIT
+version: 2.1.0
+date-released: "2026-08-30"
+keywords:
+  - netflix
+  - open connect
+  - cdn
+  - internet measurement
+  - geolocation

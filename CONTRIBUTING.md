@@ -157,6 +157,11 @@ For security issues, do **not** open a public issue — see [SECURITY.md](SECURI
 
 ## Academic context
 
+If you use this tool in research, please cite the software. The metadata is in
+[`CITATION.cff`](CITATION.cff), which GitHub's "Cite this repository" button reads.
+Keep `version` there in sync with `pyproject.toml`, and update the BibTeX block in
+the README in the same change. CI rejects a mismatch.
+
 The geolocation approach uses TheAleph, described in a paper published at ACM CoNEXT
-2025 (Thiagarajan, Carisimo, Bustamante). If you use this tool in research, a
-citation is appreciated.
+2025 (Thiagarajan, Carisimo, Bustamante). Please cite that paper as well when the
+geolocation results matter to the work.
