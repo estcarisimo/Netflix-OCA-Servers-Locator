@@ -44,11 +44,8 @@ cd Netflix-OCA-Servers-Locator
 pip install -e .
 ```
 
-> **Note:** this package is not on PyPI yet. Publishing a GitHub Release uploads
-> it with [Trusted Publishing](https://docs.pypi.org/trusted-publishers/)
-> (`.github/workflows/publish.yml`). Until that first release is published,
-> `pip install netflix-oca-locator` will not work. Install from a clone, as
-> shown above.
+> **Note:** this package is not published to PyPI — `pip install netflix-oca-locator`
+> will not work. Install from a clone, as shown above.
 
 ### System Requirements
 
